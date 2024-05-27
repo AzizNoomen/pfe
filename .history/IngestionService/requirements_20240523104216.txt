@@ -1,0 +1,4 @@
+fastapi = 0.109.2
+uvicorn = 
+neo4j
+pydantic
