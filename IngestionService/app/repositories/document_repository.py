@@ -1,22 +1,63 @@
-from neo4j import Driver, GraphDatabase, Session
-from app.models.document_models import Document
-from app.utils.config import settings
-from typing import List
+from app.database import db
+from app.models import Document
+import logging
+from uuid import UUID
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DocumentRepository:
-    def __init__(self, session: Session):
-        self.driver = GraphDatabase.driver(settings.NEO4J_URI, auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD))
-        self.session = self.driver.session()
+    def create(self, title, content):
+        document = Document(title=title, content=content)
+        with db.driver.session() as session:
+            result = session.run(
+                "CREATE (d:Document {id: $id, title: $title, content: $content}) RETURN d",
+                {"id": str(document.id), "title": title, "content": content}
+            )
+            record = result.single()
+            if record:
+                logger.info("Document created: %s", document)
+                return document
+            else:
+                logger.error("Failed to create document")
+                return None
 
-    def create_document(self, title: str, content: str) -> Document:
-        with self.session as session:
-            result = session.run("CREATE (d:Document {title: $title, content: $content}) RETURN d", title=title, content=content)
-            return result
+    def get_by_id(self, id: UUID):
+        with db.driver.session() as session:
+            result = session.run(
+                "MATCH (d:Document) WHERE d.id = $id RETURN d",
+                {"id": str(id)}
+            )
+            record = result.single()
+            if record:
+                doc_node = record["d"]
+                document = Document(id=UUID(doc_node["id"]), title=doc_node["title"], content=doc_node["content"])
+                logger.info("Document fetched: %s", document)
+                return document
+            else:
+                logger.info("Document not found with id: %s", id)
+                return None
 
-    def get_documents(self) -> List[Document]:
-        with self.session as session:
-            result = session.run("MATCH (d:Document) RETURN d")
-            return [Document(title=record["d"]["title"], content=record["d"]["content"]) for record in result]
+    def update(self, id: UUID, title: str, content: str):
+        with db.driver.session() as session:
+            result = session.run(
+                "MATCH (d:Document) WHERE d.id = $id SET d.title = $title, d.content = $content RETURN d",
+                {"id": str(id), "title": title, "content": content}
+            )
+            record = result.single()
+            if record:
+                document = self.get_by_id(id)
+                logger.info("Document updated: %s", document)
+                return document
+            else:
+                logger.error("Failed to update document with id: %s", id)
+                return None
 
-    def close(self):
-        self.driver.close()
+    def delete(self, id: UUID):
+        with db.driver.session() as session:
+            session.run(
+                "MATCH (d:Document) WHERE d.id = $id DETACH DELETE d",
+                {"id": str(id)}
+            )
+            logger.info("Document deleted with id: %s", id)

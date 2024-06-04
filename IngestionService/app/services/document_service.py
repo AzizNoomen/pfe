@@ -1,19 +1,18 @@
-from neo4j import Session
-from app.repositories.document_repository import DocumentRepository
-from app.schemas.document_schema import DocumentSchema
-from typing import List
+from app.repositories import DocumentRepository
+from uuid import UUID
 
 class DocumentService:
-    def __init__(self, session: Session):
-        self.repository = DocumentRepository(session)
+    def __init__(self):
+        self.document_repository = DocumentRepository()
 
-    def create_document(self, document_data: DocumentSchema) -> DocumentSchema:
-        document = self.repository.create_document(document_data.title, document_data.content)
-        return document
+    def create(self, title, content):
+        return self.document_repository.create(title, content)
 
-    def get_documents(self) -> List[DocumentSchema]:
-        documents = self.repository.get_documents()
-        return documents
+    def get_by_id(self, id: UUID):
+        return self.document_repository.get_by_id(id)
 
-    def close(self):
-        self.repository.close()
+    def update(self, id: UUID, title, content):
+        return self.document_repository.update(id, title, content)
+
+    def delete(self, id: UUID):
+        return self.document_repository.delete(id)

@@ -1,12 +1,13 @@
+from dataclasses import dataclass
+import uuid
+
+@dataclass
 class Document:
-    def __init__(self, id, title, content):
-        self.id = id
+    id: uuid.UUID
+    title: str
+    content: str
+
+    def __init__(self,title: str, content: str, id: uuid.UUID = None):
+        self.id = id or uuid.uuid4()
         self.title = title
         self.content = content
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "content": self.content
-        }
