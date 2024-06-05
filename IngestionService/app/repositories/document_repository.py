@@ -61,3 +61,17 @@ class DocumentRepository:
                 {"id": str(id)}
             )
             logger.info("Document deleted with id: %s", id)
+
+    def get_all(self):
+        with db.driver.session() as session:
+            result = session.run("MATCH (d:Document) RETURN d.id, d.title, d.content")
+            documents = []
+            for record in result:
+                documents.append(
+                    Document(
+                        id=UUID(record["d.id"]),
+                        title=record["d.title"],
+                        content=record["d.content"]
+                    )
+                )
+            return documents

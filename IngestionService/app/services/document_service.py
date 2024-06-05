@@ -1,3 +1,4 @@
+from app.schemas.document_schema import DocumentSchema
 from app.repositories import DocumentRepository
 from uuid import UUID
 
@@ -16,3 +17,6 @@ class DocumentService:
 
     def delete(self, id: UUID):
         return self.document_repository.delete(id)
+
+    def get_all(self):
+        return  self.document_repository.get_all()

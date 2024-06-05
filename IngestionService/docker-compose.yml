@@ -12,7 +12,7 @@ services:
       - PASSWORD=aziz1234
     depends_on:
       - neo-db
-    container_name: my-fastapi-app
+    container_name: Ingestion-Service
 
   neo-db:
     image: neo4j:4.4-community
