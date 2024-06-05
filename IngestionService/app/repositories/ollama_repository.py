@@ -6,7 +6,7 @@ from fastapi import HTTPException
 BASE_URL = os.environ.get('OLLAMA_HOST', 'http://host.docker.internal:11434')
 
 class OllamaRepository:
-    def generate_text(self, model_name, prompt, system=None, template=None, context=None, options=None):
+    def generate_text(self, model_name:str, prompt:str, system=None, template=None, context=None, options=None):
         try:
             url = f"{BASE_URL}/api/generate"
             payload = {
@@ -64,8 +64,6 @@ class OllamaRepository:
                         chunk = json.loads(line)
                         if 'Completed' in chunk:
                             print(f" - Completed: {chunk['Completed']}")
-                        else:
-                            print()
 
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
