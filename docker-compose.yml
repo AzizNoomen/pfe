@@ -1,8 +1,9 @@
 version: '3'
 services:
-  app:
+
+  ingestion-service:
     build:
-      context: .
+      context: ./IngestionService
       dockerfile: Dockerfile
     ports:
       - 8000:8000
@@ -10,23 +11,35 @@ services:
       - NEO4J_URI=neo4j://neo-db:7687
       - USER_NAME=neo4j
       - PASSWORD=aziz1234
-      - OLLAMA_HOST=http://ollama:11434  # Ensure your app points to the Ollama container
     depends_on:
       - neo-db
-      - ollama  # Ensure the app waits for Ollama to start
     container_name: Ingestion-Service
+
+
+  model-service:
+    build:
+      context: ./ModelService
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8001
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    container_name: Model-Service
+
 
   neo-db:
     image: neo4j:4.4-community
     ports:
       - 7474:7474
-      - 7473:7473
       - 7687:7687
     environment:
       NEO4J_AUTH: neo4j/aziz1234
     volumes:
       - neo4j_data:/data
     container_name: neo4j-database
+
 
   ollama:
     image: ollama/ollama

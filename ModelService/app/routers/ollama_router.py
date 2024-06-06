@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile
+from fastapi.responses import StreamingResponse
 from app.services.ollama_service import OllamaService
 from app.schemas.ollama_schema import (
     OllamaModelListResponse,
@@ -12,11 +13,12 @@ ollama_service = OllamaService()
 @router.post("/generate_text", response_model=GenericResponse)
 async def generate_text(model_name: str, prompt: str, system: str = None, template: str = None, context: str = None, options: str = None):
     response = ollama_service.generate_text(model_name, prompt, system, template, context, options)
-    return {"response": response}
+    return StreamingResponse(response, media_type="text/plain")
 
 @router.post("/create_model", response_model=GenericResponse)
-async def create_model(model_name: str, model_path: str = None):
-    response = ollama_service.create_model(model_name, model_path)
+async def create_model(model_name: str, model_file: UploadFile = File(...)):
+    model_content = await model_file.read()
+    response = ollama_service.create_model(model_name, model_content)
     return {"response": response}
 
 @router.post("/pull_model", response_model=GenericResponse)

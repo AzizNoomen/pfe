@@ -18,8 +18,8 @@ class OllamaService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
 
         
-    def create_model(self, model_name:str, model_path:str = None) -> GenericResponse:
-        return self.ollama_repository.create_model(model_name, model_path)
+    def create_model(self, model_name:str, model_content: bytes) -> GenericResponse:
+        return self.ollama_repository.create_model(model_name, model_content)
 
     def pull_model(self, model_name: str, insecure: bool = False) -> GenericResponse:
         models = self.list_models()
