@@ -3,10 +3,12 @@ import requests
 import json
 from fastapi import HTTPException
 
+from app.schemas.ollama_schema import OllamaModelListResponse, ShowModelFullResponse
+
 BASE_URL = os.environ.get('OLLAMA_HOST', 'http://ollama:11434')
 
 class OllamaRepository:
-    def generate_text(self, model_name:str, prompt:str, system=None, template=None, context=None, options=None):
+    def generate_text(self, model_name:str, prompt:str, system=None, template=None, context=None, options=None) -> str:
         try:
             url = f"{BASE_URL}/api/generate"
             payload = {
@@ -35,7 +37,7 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def create_model(self, model_name, model_path=None):
+    def create_model(self, model_name, model_path=None) -> str:
         try:
             url = f"{BASE_URL}/api/create"
             payload = {"name": model_name, "path": model_path}
@@ -51,7 +53,7 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def pull_model(self, model_name, insecure=False):
+    def pull_model(self, model_name, insecure=False) -> str:
         try:
             url = f"{BASE_URL}/api/pull"
             payload = {"name": model_name, "insecure": insecure}
@@ -68,7 +70,7 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def push_model(self, model_name, insecure=False):
+    def push_model(self, model_name, insecure=False) -> str:
         try:
             url = f"{BASE_URL}/api/push"
             payload = {"name": model_name, "insecure": insecure}
@@ -84,7 +86,7 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def list_models(self):
+    def list_models(self) -> OllamaModelListResponse:
         try:
             response = requests.get(f"{BASE_URL}/api/tags")
             response.raise_for_status()
@@ -94,7 +96,7 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def copy_model(self, source, destination):
+    def copy_model(self, source, destination) -> str:
         try:
             payload = {"source": source, "destination": destination}
             response = requests.post(f"{BASE_URL}/api/copy", json=payload)
@@ -104,7 +106,7 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def delete_model(self, model_name):
+    def delete_model(self, model_name) -> str:
         try:
             payload = {"name": model_name}
             response = requests.delete(f"{BASE_URL}/api/delete", json=payload)
@@ -115,7 +117,7 @@ class OllamaRepository:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
     # Show info about a model.
-    def show_model(self, model_name):
+    def show_model(self, model_name) -> ShowModelFullResponse:
         try:
             url = f"{BASE_URL}/api/show"
             payload = {"name": model_name}
@@ -130,7 +132,7 @@ class OllamaRepository:
             return None
         
 
-    def heartbeat(self):
+    def heartbeat(self) -> str:
         try:
             url = f"{BASE_URL}/"
             response = requests.head(url)

@@ -1,11 +1,12 @@
-from app.repositories.ollama_repository import OllamaRepository
 from fastapi import HTTPException, status
+from app.schemas.ollama_schema import GenericResponse, OllamaModelListResponse, ShowModelFullResponse
+from app.repositories.ollama_repository import OllamaRepository
 
 class OllamaService:
     def __init__(self):
         self.ollama_repository = OllamaRepository()
 
-    def generate_text(self, model_name, prompt, system=None, template=None, context=None, options=None):
+    def generate_text(self, model_name:str, prompt:str, system:str = None, template:str = None, context:str = None, options:str = None) -> GenericResponse:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
@@ -17,10 +18,10 @@ class OllamaService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
 
         
-    def create_model(self, model_name, model_path=None):
+    def create_model(self, model_name:str, model_path:str = None) -> GenericResponse:
         return self.ollama_repository.create_model(model_name, model_path)
 
-    def pull_model(self, model_name: str, insecure: bool = False):
+    def pull_model(self, model_name: str, insecure: bool = False) -> GenericResponse:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
@@ -32,7 +33,7 @@ class OllamaService:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Model '{model_name}' already exists")
 
 
-    def push_model(self, model_name, insecure=False):
+    def push_model(self, model_name:str, insecure:bool = False) -> GenericResponse:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
@@ -44,13 +45,13 @@ class OllamaService:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Model '{model_name}' already exists")
         
 
-    def list_models(self):
+    def list_models(self) -> OllamaModelListResponse:
         return self.ollama_repository.list_models()
 
-    def copy_model(self, source, destination):
+    def copy_model(self, source:str, destination:str) -> GenericResponse:
         return self.ollama_repository.copy_model(source, destination)
 
-    def delete_model(self, model_name):
+    def delete_model(self, model_name:str) -> GenericResponse:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
@@ -62,7 +63,7 @@ class OllamaService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
 
 
-    def show_model(self, model_name):
+    def show_model(self, model_name:str) -> ShowModelFullResponse:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
@@ -74,5 +75,5 @@ class OllamaService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
         
 
-    def check_ollama_health(self):
+    def check_ollama_health(self) -> GenericResponse:
         return self.ollama_repository.heartbeat()
