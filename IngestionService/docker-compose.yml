@@ -10,8 +10,10 @@ services:
       - NEO4J_URI=neo4j://neo-db:7687
       - USER_NAME=neo4j
       - PASSWORD=aziz1234
+      - OLLAMA_HOST=http://ollama:11434  # Ensure your app points to the Ollama container
     depends_on:
       - neo-db
+      - ollama  # Ensure the app waits for Ollama to start
     container_name: Ingestion-Service
 
   neo-db:
@@ -26,5 +28,20 @@ services:
       - neo4j_data:/data
     container_name: neo4j-database
 
+  ollama:
+    image: ollama/ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+    restart: always
+    container_name: ollama
+
 volumes:
   neo4j_data:
+  ollama:

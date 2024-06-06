@@ -3,7 +3,7 @@ import requests
 import json
 from fastapi import HTTPException
 
-BASE_URL = os.environ.get('OLLAMA_HOST', 'http://host.docker.internal:11434')
+BASE_URL = os.environ.get('OLLAMA_HOST', 'http://ollama:11434')
 
 class OllamaRepository:
     def generate_text(self, model_name:str, prompt:str, system=None, template=None, context=None, options=None):
