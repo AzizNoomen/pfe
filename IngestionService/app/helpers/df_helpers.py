@@ -2,6 +2,13 @@ import uuid
 import pandas as pd
 import numpy as np
 from .prompts import graphPrompt
+import logging
+import asyncio
+import concurrent.futures
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def documents2Dataframe(documents) -> pd.DataFrame:
@@ -26,29 +33,29 @@ def query2Dataframe(query) -> pd.DataFrame:
     return df
 
 
-def df2Graph(dataframe: pd.DataFrame, model=None) -> list:
-    # dataframe.reset_index(inplace=True)
-    if (len(dataframe) > 1):
-        results = dataframe.apply(
-            lambda row: graphPrompt(row.text, {"chunk_id": row.chunk_id, "source":row.source}, model), axis=1
-        )
-        # invalid json results in NaN
-        results = results.dropna()
-        results = results.reset_index(drop=True)
+async def df2Graph(dataframe: pd.DataFrame, model=None) -> list:
 
-        ## Flatten the list of lists to one single list of entities.
-        concept_list = np.concatenate(results).ravel().tolist()
-        return concept_list
-    
-    else:
-        results = dataframe.apply(
-            lambda row: graphPrompt(row.text, {} ,model), axis=1
-        )
-        # invalid json results in NaN
-        results = results.dropna()
-        results = results.reset_index(drop=True)
-        concept_list = results.ravel().tolist()
-        return concept_list
+    try:
+        async def apply_async(row):
+            return await graphPrompt(row.text, {"chunk_id": row.chunk_id, "source":row.source}, model)
+
+        tasks = [apply_async(row) for _, row in dataframe.iterrows()]
+        
+        results = await asyncio.gather(*tasks)
+        
+        # Drop None values (in case of errors in graphPrompt)
+        results = [result for result in results if result is not None]
+        
+        if len(results) > 1:
+            # Flatten the list of lists to one single list of entities.
+            concept_list = np.concatenate(results).ravel().tolist()
+            return concept_list
+        else:
+            return results[0]
+        
+    except Exception as e:
+        logger.error(f"Error in df2Graph: {e}")
+        raise e
 
 
 def graph2Df(nodes_list) -> pd.DataFrame:

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Any, Dict, Optional, List
 
 from pydantic import BaseModel
 from typing import List, Optional
@@ -27,8 +27,6 @@ class OllamaModelListResponse(BaseModel):
     response: List[OllamaModel]
 
 
-#ollama show model details schemas
-
 class ShowModelDetails(BaseModel):
     parent_model: str
     format: str
@@ -47,8 +45,14 @@ class ShowModelResponse(BaseModel):
 class ShowModelFullResponse(BaseModel):
     response: ShowModelResponse
 
-
-#ollama generic response
-
 class GenericResponse(BaseModel):
     response: Optional[str] = None
+
+
+class GenerateTextRequest(BaseModel):
+    model_name: str
+    prompt: str
+    system: Optional[str] = None
+    template: Optional[str] = None
+    context: Optional[List[int]] = None
+    options: Optional[Dict[str, Any]] = None

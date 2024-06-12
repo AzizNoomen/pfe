@@ -1,18 +1,26 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, Body
+import logging
 from fastapi.responses import StreamingResponse
 from app.services.ollama_service import OllamaService
 from app.schemas.ollama_schema import (
     OllamaModelListResponse,
     GenericResponse,
-    ShowModelFullResponse
+    ShowModelFullResponse,
+    GenerateTextRequest,
 )
 
 router = APIRouter()
 ollama_service = OllamaService()
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 @router.post("/generate_text", response_model=GenericResponse)
-async def generate_text(model_name: str, prompt: str, system: str = None, template: str = None, context: str = None, options: str = None):
-    response = ollama_service.generate_text(model_name, prompt, system, template, context, options)
+async def generate_text(request_body: GenerateTextRequest = Body(...)):
+    logger.info("Generate text endpoint reached successfully")
+    response = ollama_service.generate_text(**request_body.dict())
     return StreamingResponse(response, media_type="text/plain")
 
 @router.post("/create_model", response_model=GenericResponse)

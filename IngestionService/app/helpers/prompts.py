@@ -1,13 +1,13 @@
-import sys
-from yachalk import chalk
-sys.path.append("..")
-
+import httpx
 import json
-import ollama.client as client
-import json
+import logging
 
 
-def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+async def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
     if model == None:
         model = "mistral-openorca:latest"
 
@@ -37,20 +37,29 @@ def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
         "]"
     )
 
+    logger.info("got into graph prompt")
+
     USER_PROMPT = f"context: ```{input}``` \n\n output: "
-    response = client.generate(model_name=model, system=SYS_PROMPT, prompt=USER_PROMPT)
-    
+    async with httpx.AsyncClient(timeout=200) as client:
+        response = await client.post(f"http://model-service:8001/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+        if response.status_code == 200:
+            logger.info("response from model service",)
+        else:
+            logger.error("Error in response from model service. Status code:", response.status_code, "Content:", response.content)
+
     try:
-        result = json.loads(response)
+        result = response.json()
         result = [dict(item, **metadata) for item in result]
-        
+        print("result from llm:", result)
+
     except:
         print("\n\nERROR ### Here is the buggy response: ", response, "\n\n")
         result = None
     return result
 
 
-def generationPrompt(Semantic_search_results, query, model="mistral-openorca:latest"):
+
+async def generationPrompt(Semantic_search_results, query, model="mistral-openorca:latest"):
 
     if model is None:
         model = "mistral-openorca:latest"
@@ -70,7 +79,8 @@ def generationPrompt(Semantic_search_results, query, model="mistral-openorca:lat
     USER_PROMPT = f"input: {Semantic_search_results.to_string(index=False)}\nOriginal query: {query}"
 
     # Generate a response using the language model
-    response = client.generate(model_name=model, system=SYS_PROMPT, prompt=USER_PROMPT)
+    async with httpx.AsyncClient(timeout=200) as client:
+        response = await client.post("http://Model-Service:8001/ollama/generate_text", json={"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
 
     try:
         result = json.loads(response)
@@ -81,6 +91,3 @@ def generationPrompt(Semantic_search_results, query, model="mistral-openorca:lat
         result = None
 
     return result
-
-
-
