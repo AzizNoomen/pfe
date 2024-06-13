@@ -21,7 +21,6 @@ class OllamaModel(BaseModel):
     size: int
     digest: str
     details: OllamaModelDetails
-    expires_at: str
 
 class OllamaModelListResponse(BaseModel):
     response: List[OllamaModel]
