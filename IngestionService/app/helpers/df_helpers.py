@@ -4,7 +4,6 @@ import numpy as np
 from .prompts import graphPrompt
 import logging
 import asyncio
-import concurrent.futures
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +53,7 @@ async def df2Graph(dataframe: pd.DataFrame, model=None) -> list:
             return results[0]
         
     except Exception as e:
-        logger.error(f"Error in df2Graph: {e}")
+        logger.error(f"Error in df2Graph: {e}", exc_info=True)
         raise e
 
 

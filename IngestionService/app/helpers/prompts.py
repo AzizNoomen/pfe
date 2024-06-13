@@ -40,7 +40,7 @@ async def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
     logger.info("got into graph prompt")
 
     USER_PROMPT = f"context: ```{input}``` \n\n output: "
-    async with httpx.AsyncClient(timeout=200) as client:
+    async with httpx.AsyncClient(timeout=20000) as client:
         response = await client.post(f"http://model-service:8001/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
         if response.status_code == 200:
             logger.info("response from model service",)

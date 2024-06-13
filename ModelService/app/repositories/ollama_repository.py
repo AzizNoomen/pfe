@@ -137,3 +137,4 @@ class OllamaRepository:
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             return "Ollama is not running"
+    
