@@ -77,3 +77,6 @@ class OllamaService:
 
     def check_ollama_health(self) -> GenericResponse:
         return self.ollama_repository.heartbeat()
+
+    def encode(self, prompt: str, model: str = "all-minilm") -> list:
+        return self.ollama_repository.encode(prompt, model)

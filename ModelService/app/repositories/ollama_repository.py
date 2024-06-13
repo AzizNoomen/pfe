@@ -7,6 +7,11 @@ from app.schemas.ollama_schema import OllamaModelListResponse, ShowModelFullResp
 
 BASE_URL = os.environ.get('OLLAMA_HOST', 'http://ollama:11434')
 
+import logging
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 class OllamaRepository:
     def generate_text(self, model_name:str, prompt:str, system=None, template=None, context=None, options=None) ->  Generator[str, None, None]:
         try:
@@ -138,3 +143,19 @@ class OllamaRepository:
             print(f"An error occurred: {e}")
             return "Ollama is not running"
     
+
+    def encode(self, prompt: str, model: str = "all-minilm") -> list:
+        try:
+            url = f"{BASE_URL}/api/embeddings"
+            payload = {
+                "model": model,
+                "prompt": prompt
+            }
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            embeddings = response.json()['embedding']
+            return embeddings
+        
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
+            return None

@@ -56,3 +56,8 @@ class GenerateTextRequest(BaseModel):
     template: Optional[str] = None
     context: Optional[List[int]] = None
     options: Optional[Dict[str, Any]] = None
+
+
+class EncodeRequest(BaseModel):
+    prompt: str
+    model: str

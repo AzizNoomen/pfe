@@ -3,10 +3,11 @@ import logging
 from fastapi.responses import StreamingResponse
 from app.services.ollama_service import OllamaService
 from app.schemas.ollama_schema import (
+    EncodeRequest,
     OllamaModelListResponse,
     GenericResponse,
     ShowModelFullResponse,
-    GenerateTextRequest,
+    GenerateTextRequest
 )
 
 router = APIRouter()
@@ -63,3 +64,8 @@ async def show_model(model_name: str):
 async def check_ollama_health():
     response = ollama_service.check_ollama_health()
     return {"response": response}
+
+@router.post("/encode", response_model=list)
+async def encode(request_body: EncodeRequest = Body(...)):
+    response = ollama_service.encode(**request_body.dict())
+    return response

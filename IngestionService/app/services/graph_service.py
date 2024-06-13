@@ -133,8 +133,7 @@ class GraphService:
         return dfg
     
 
-    def contruct_graph(self, dfg: pd.DataFrame) -> None:
+    async def contruct_graph(self, dfg: pd.DataFrame) -> None:
         nodes = pd.concat([dfg['node_1'], dfg['node_2']], axis=0).unique()
         self.graph_repository.add_nodes(nodes)
-        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-        self.graph_repository.add_edges(dfg, model)
+        await self.graph_repository.add_edges(dfg)

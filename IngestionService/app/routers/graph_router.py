@@ -13,7 +13,7 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
         dfg1 = await graph_service.generate_graph(df)
         dfg2 = graph_service.contextual_proximity(dfg1)
         dfg = graph_service.merge_relationships(dfg1, dfg2)
-        graph_service.contruct_graph(dfg)
+        await graph_service.contruct_graph(dfg)
         return {"message": "PDFs uploaded and graph created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

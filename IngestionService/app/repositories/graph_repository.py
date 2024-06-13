@@ -1,3 +1,4 @@
+import httpx
 import pandas as pd
 import logging
 from typing import List
@@ -25,13 +26,15 @@ class GraphRepository:
         logger.info('nodes added successfully')
 
 
-    def add_edges(self, dfg: pd.DataFrame, model: SentenceTransformer) -> None:
+    async def add_edges(self, dfg: pd.DataFrame) -> None:
         logger.info('adding egdes to neo4j graph')
         with self.db.driver.session() as session:
             for _, row in dfg.iterrows():
             # Assuming you have a model for generating embeddings
                 if row['edge'] != 'contextual proximity':
-                    embedding = model.encode(row['edge'])
+                    async with httpx.AsyncClient(timeout=200) as client:
+                        response = await client.post(f"http://model-service:8001/ollama/encode", json = {"model": "all-minilm", "prompt": row['edge']})
+                        embedding = response.json()
                 else:
                     embedding = None
                 
