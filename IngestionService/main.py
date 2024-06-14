@@ -1,7 +1,6 @@
 import logging
 from fastapi import FastAPI
 from app.middlewares.cors_middleware import middlewares
-from app.routers.document_router import router as document_router
 from app.routers.graph_router import router as graph_router
 
 
@@ -12,15 +11,12 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Ingestion Service", middleware=middlewares)
 
 try:
-    app.include_router(document_router, prefix="/api")
-    logger.info("Document router included successfully.")
-
     app.include_router(graph_router, prefix="/api")
     logger.info("graph router included successfully.")
     
 
 except AttributeError as e:
-    logger.error("Error including document router: %s", e)
+    logger.error("Error including graph router: %s", e)
 
 
 if __name__ == '__main__':

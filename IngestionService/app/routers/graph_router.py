@@ -18,3 +18,10 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.delete("/delete_all")
+def delete_all():
+    try:
+        graph_service.delete_all()
+        return {"message": "Graph deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

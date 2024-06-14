@@ -58,7 +58,7 @@ class GraphService:
     async def generate_graph(self, df: pd.DataFrame) -> pd.DataFrame:
         concepts_list = await df2Graph(df, model='zephyr:latest')
         logger.info("Concepts list created %s", len(concepts_list))
-        dfg1 = graph2Df(concepts_list)
+        dfg1 = await graph2Df(concepts_list)
 
         logger.info("Concepts dataframe created with shape: %s", dfg1.shape)
 
@@ -137,3 +137,7 @@ class GraphService:
         nodes = pd.concat([dfg['node_1'], dfg['node_2']], axis=0).unique()
         self.graph_repository.add_nodes(nodes)
         await self.graph_repository.add_edges(dfg)
+
+
+    def delete_all(self) -> None:
+        self.graph_repository.delete_all()

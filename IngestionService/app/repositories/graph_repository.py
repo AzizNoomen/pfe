@@ -68,5 +68,11 @@ class GraphRepository:
                     )
         logger.info('edges added successfully')
 
+    def delete_all(self) -> None:
+        with self.db.driver.session() as session:
+            session.run(
+                "MATCH (n) DETACH DELETE n"
+            )
+
     
 

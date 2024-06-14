@@ -57,7 +57,7 @@ async def df2Graph(dataframe: pd.DataFrame, model=None) -> list:
         raise e
 
 
-def graph2Df(nodes_list) -> pd.DataFrame:
+async def graph2Df(nodes_list) -> pd.DataFrame:
     ## Remove all NaN entities
     graph_dataframe = pd.DataFrame(nodes_list).replace(" ", np.nan)
     graph_dataframe = graph_dataframe.dropna(subset=["node_1", "node_2"])
