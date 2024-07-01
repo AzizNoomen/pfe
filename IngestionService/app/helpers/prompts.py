@@ -1,18 +1,15 @@
 import httpx
-import json
 import logging
+from typing import List, Dict, Any
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
+async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model: str = "mistral-openorca:latest") -> List[Dict[str, Any]]:
     if model == None:
         model = "mistral-openorca:latest"
-
-    #model_info = client.show(model_name=model)
-    #print(chalk.blue(model_info), "\n")
 
     SYS_PROMPT = (
         "You are a network graph maker who extracts terms and their relations from a given context. "
@@ -39,55 +36,29 @@ async def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
 
     logger.info("got into graph prompt")
 
+    attempt = 0
+    result = None
+    max_retries = 3
+
     USER_PROMPT = f"context: ```{input}``` \n\n output: "
-    async with httpx.AsyncClient(timeout=20000) as client:
-        response = await client.post(f"http://model-service:8001/api/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
-        if response.status_code == 200:
-            logger.info("response from model service",)
-        else:
-            logger.error("Error in response from model service. Status code:", response.status_code, "Content:", response.content)
 
-    try:
-        result = response.json()
-        result = [dict(item, **metadata) for item in result]
-        print("result from llm:", result)
+    while attempt < max_retries and result is None:
 
-    except:
-        print("\n\nERROR ### Here is the buggy response: ", response, "\n\n")
-        result = None
-    return result
+        async with httpx.AsyncClient(timeout=20000) as client:
+            response = await client.post(f"http://model-service:8001/api/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+            if response.status_code == 200:
+                logger.info("response from model service",)
+            else:
+                logger.error("Error in response from model service. Status code:", response.status_code, "Content:", response.content)
 
+        try:
+            result = response.json()
+            result = [dict(item, **metadata) for item in result]
+            print("result from llm:", result)
 
-
-async def generationPrompt(Semantic_search_results, query, model="mistral-openorca:latest"):
-
-    if model is None:
-        model = "mistral-openorca:latest"
-
-    # Define the system prompt for the language model
-    SYS_PROMPT = (
-        "You are a language model who generates a response based on the given input.\n"
-        "The input consists of a list of relationships between nodes, with a score and a context list for each relationship.\n"
-        "The score represents the cosine similarity between the query and the corresponding node in the database, which is used for retrieval in a Retrieval-Augmented Generation (RAG) system.\n"
-        "The context list is a list of nodes that are related to the source and target nodes of the relationship, and provide additional context and information about the relationship.\n"
-        "Your task is to generate a coherent and meaningful summary of the information contained in the relationships and their context lists, in the context of the original query.\n"
-        "Do not mention any technical details about the relationships, nodes, scores, or context in your response. Just provide a summary of the information.\n"
-        "Format your output as a single string.\n"
-    )
-
-    # Define the user prompt for the language model
-    USER_PROMPT = f"input: {Semantic_search_results.to_string(index=False)}\nOriginal query: {query}"
-
-    # Generate a response using the language model
-    async with httpx.AsyncClient(timeout=200) as client:
-        response = await client.post("http://Model-Service:8001/api/ollama/generate_text", json={"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
-
-    try:
-        result = json.loads(response)
-        result = [dict(iter, **input)]
-    except Exception as e:
-        #print("\n\nERROR ### Here is the buggy response: ", response, "\n\n")
-        #print("Exception:", e)  # Print the exception for further debugging
-        result = None
+        except:
+            print(f"\n\nERROR ### Here is the buggy response (attempt {attempt + 1}): ", response, "\n\n")
+            attempt += 1
+            result = None
 
     return result

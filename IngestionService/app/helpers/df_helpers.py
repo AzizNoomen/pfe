@@ -24,14 +24,6 @@ def documents2Dataframe(documents) -> pd.DataFrame:
     return df
 
 
-def query2Dataframe(query) -> pd.DataFrame:
-    row = {
-        "text": query
-    }
-    df = pd.DataFrame([row])
-    return df
-
-
 async def df2Graph(dataframe: pd.DataFrame, model=None) -> list:
 
     try:
