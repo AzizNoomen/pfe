@@ -1,82 +1,185 @@
+import os
+import requests
+import json
 from fastapi import HTTPException, status
+from typing import Generator
 from app.schemas.ollama_schema import GenericResponse, OllamaModelListResponse, ShowModelFullResponse
-from app.repositories.ollama_repository import OllamaRepository
+
+BASE_URL = os.environ.get('OLLAMA_HOST', 'http://ollama:11434')
+
+import logging
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class OllamaService:
-    def __init__(self):
-        self.ollama_repository = OllamaRepository()
-
-    def generate_text(self, model_name:str, prompt:str, system:str = None, template:str = None, context:str = None, options:str = None) -> GenericResponse:
+    def generate_text(self, model_name: str, prompt: str, system: str = None, template: str = None, context: str = None, options: str = None) -> Generator[str, None, None]:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
         if any(model['name'] == model_name for model in models):
-            # Pull the model
-            return self.ollama_repository.generate_text(model_name, prompt, system, template, context, options)
-        
+            try:
+                url = f"{BASE_URL}/api/generate"
+                payload = {
+                    "model": model_name,
+                    "prompt": prompt,
+                    "system": system,
+                    "template": template,
+                    "context": context,
+                    "options": options
+                }
+                payload = {k: v for k, v in payload.items() if v is not None}
+
+                with requests.post(url, json=payload, stream=True) as response:
+                    response.raise_for_status()
+                    full_response = ""
+
+                    for line in response.iter_lines():
+                        if line:
+                            chunk = json.loads(line)
+                            if not chunk.get("done"):
+                                response_piece = chunk.get("response", "")
+                                yield response_piece
+                                full_response += response_piece
+                    return full_response
+
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
 
-        
-    def create_model(self, model_name:str, model_content: bytes) -> GenericResponse:
-        return self.ollama_repository.create_model(model_name, model_content)
+    def create_model(self, model_name: str, model_content: bytes) -> str:
+        try:
+            with open(f"{model_name}.txt", "wb") as file:
+                file.write(model_content)
 
-    def pull_model(self, model_name: str, insecure: bool = False) -> GenericResponse:
+            return f"Model '{model_name}' created successfully"
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+        
+    def pull_model(self, model_name: str, insecure: bool = False) -> str:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
         if all(model['name'] != model_name for model in models):
-            # Pull the model
-            return self.ollama_repository.pull_model(model_name, insecure)
-        
+            try:
+                url = f"{BASE_URL}/api/pull"
+                payload = {"name": model_name, "insecure": insecure}
+
+                with requests.post(url, json=payload, stream=True) as response:
+                    response.raise_for_status()
+
+                    for line in response.iter_lines():
+                        if line:
+                            chunk = json.loads(line)
+                            if 'Completed' in chunk:
+                                print(f" - Completed: {chunk['Completed']}")
+                                return f"Model '{model_name}' pulled successfully"
+                        
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
         else:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Model '{model_name}' already exists")
 
-
-    def push_model(self, model_name:str, insecure:bool = False) -> GenericResponse:
+    def push_model(self, model_name: str, insecure: bool = False) -> str:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
         if all(model['name'] != model_name for model in models):
-            # Pull the model
-            return self.ollama_repository.push_model(model_name, insecure)
-        
+            try:
+                url = f"{BASE_URL}/api/push"
+                payload = {"name": model_name, "insecure": insecure}
+
+                with requests.post(url, json=payload, stream=True) as response:
+                    response.raise_for_status()
+
+                    for line in response.iter_lines():
+                        if line:
+                            chunk = json.loads(line)
+                            print(f"Status: {chunk.get('status')}")
+                            return f"Model '{model_name}' pushed successfully"
+
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
         else:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Model '{model_name}' already exists")
-        
 
     def list_models(self) -> OllamaModelListResponse:
-        return self.ollama_repository.list_models()
+        try:
+            response = requests.get(f"{BASE_URL}/api/tags")
+            response.raise_for_status()
+            data = response.json()
+            return data.get('models', [])
 
-    def copy_model(self, source:str, destination:str) -> GenericResponse:
-        return self.ollama_repository.copy_model(source, destination)
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-    def delete_model(self, model_name:str) -> GenericResponse:
+    def copy_model(self, source: str, destination: str) -> str:
+        try:
+            payload = {"source": source, "destination": destination}
+            response = requests.post(f"{BASE_URL}/api/copy", json=payload)
+            response.raise_for_status()
+            return "Copy successful"
+
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+    def delete_model(self, model_name: str) -> str:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
         if any(model['name'] == model_name for model in models):
-            # Pull the model
-            return self.ollama_repository.delete_model(model_name)
-        
+            try:
+                payload = {"name": model_name}
+                response = requests.delete(f"{BASE_URL}/api/delete", json=payload)
+                response.raise_for_status()
+                return "Delete successful"
+
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
 
-
-    def show_model(self, model_name:str) -> ShowModelFullResponse:
+    def show_model(self, model_name: str) -> ShowModelFullResponse:
         models = self.list_models()
 
         # Check if the specified model_name exists in the list of models
         if any(model['name'] == model_name for model in models):
-            # Pull the model
-            return self.ollama_repository.show_model(model_name)
-        
+            try:
+                url = f"{BASE_URL}/api/show"
+                payload = {"name": model_name}
+                response = requests.post(url, json=payload)
+                response.raise_for_status()
+                
+                # Parse the JSON response and return it
+                data = response.json()
+                return data
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Model '{model_name}' doesn't exist, please specify the tag or change the model")
-        
 
-    def check_ollama_health(self) -> GenericResponse:
-        return self.ollama_repository.heartbeat()
+    def check_ollama_health(self) -> str:
+        try:
+            url = f"{BASE_URL}/"
+            response = requests.head(url)
+            response.raise_for_status()
+            return "Ollama is running"
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
     def encode(self, prompt: str, model: str = "all-minilm") -> list:
-        return self.ollama_repository.encode(prompt, model)
+        try:
+            url = f"{BASE_URL}/api/embeddings"
+            payload = {
+                "model": model,
+                "prompt": prompt
+            }
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            embeddings = response.json()['embedding']
+            return embeddings
+        
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
