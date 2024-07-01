@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, File, UploadFile, Depends
 from typing import List
 from app.services.graph_service import GraphService
-from pathlib import Path
 
 router = APIRouter(prefix="/ingestion_service")
 graph_service = GraphService()

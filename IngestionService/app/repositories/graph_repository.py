@@ -40,7 +40,7 @@ class GraphRepository:
                 # Assuming you have a model for generating embeddings
                 if row['edge'] != 'contextual proximity':
                     try:
-                        async with httpx.AsyncClient(timeout=200) as client:
+                        async with httpx.AsyncClient(timeout=2000) as client:
                             response = await client.post(f"http://model-service:8001/api/ollama/encode", json={"model": "all-minilm", "prompt": row['edge']})
                             response.raise_for_status()
                             embedding = response.json()
@@ -78,6 +78,7 @@ class GraphRepository:
                         },
                     )
         logger.info('edges added successfully')
+
 
     def delete_all(self) -> None:
         if not self.db:

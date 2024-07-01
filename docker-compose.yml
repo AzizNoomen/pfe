@@ -16,6 +16,21 @@ services:
     container_name: Ingestion-Service
 
 
+  retrieval-service:
+    build:
+      context: ./RetrievalService
+      dockerfile: Dockerfile
+    ports:
+      - 8002:8002
+    environment:
+      - NEO4J_URI=neo4j://neo-db:7687
+      - USER_NAME=neo4j
+      - PASSWORD=aziz1234
+    depends_on:
+      - neo-db
+    container_name: Retrieval-Service
+
+
   model-service:
     build:
       context: ./ModelService
