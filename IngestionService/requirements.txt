@@ -9,4 +9,3 @@ langchain-community==0.2.3
 pandas==2.2.2
 yachalk==0.0.1
 pypdf==4.2.0  #check
-sentence_transformers==3.0.1  #check

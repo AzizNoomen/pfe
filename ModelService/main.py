@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Model Service", middleware=middlewares)
 
 try:
-    app.include_router(ollama_router, prefix="/ollama", tags=["Ollama"])
+    app.include_router(ollama_router, prefix="/api", tags=["Ollama"])
     logger.info("Ollama router included successfully.")
 
 

@@ -10,7 +10,7 @@ from app.schemas.ollama_schema import (
     GenerateTextRequest
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/ollama")
 ollama_service = OllamaService()
 
 # Configure logging

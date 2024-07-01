@@ -2,8 +2,8 @@ import httpx
 import pandas as pd
 import logging
 from typing import List
-from sentence_transformers import SentenceTransformer
 from app.database import db
+from app.exceptions.graph_exceptions import DatabaseNotInitialized, ModelServiceUnavailable
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +16,11 @@ class GraphRepository:
 
     
     def add_nodes(self, nodes: List[str]) -> None:
+        if not self.db:
+            raise DatabaseNotInitialized()
+        
         logger.info('adding nodes to neo4j graph')
+        
         with self.db.driver.session() as session:
             for node in nodes:
                 session.run(
@@ -27,14 +31,21 @@ class GraphRepository:
 
 
     async def add_edges(self, dfg: pd.DataFrame) -> None:
+        if not self.db:
+            raise DatabaseNotInitialized()
+
         logger.info('adding egdes to neo4j graph')
         with self.db.driver.session() as session:
             for _, row in dfg.iterrows():
-            # Assuming you have a model for generating embeddings
+                # Assuming you have a model for generating embeddings
                 if row['edge'] != 'contextual proximity':
-                    async with httpx.AsyncClient(timeout=200) as client:
-                        response = await client.post(f"http://model-service:8001/ollama/encode", json = {"model": "all-minilm", "prompt": row['edge']})
-                        embedding = response.json()
+                    try:
+                        async with httpx.AsyncClient(timeout=200) as client:
+                            response = await client.post(f"http://model-service:8001/ollama/encode", json={"model": "all-minilm", "prompt": row['edge']})
+                            response.raise_for_status()
+                            embedding = response.json()
+                    except httpx.HTTPStatusError:
+                        raise ModelServiceUnavailable()
                 else:
                     embedding = None
                 
@@ -69,6 +80,9 @@ class GraphRepository:
         logger.info('edges added successfully')
 
     def delete_all(self) -> None:
+        if not self.db:
+            raise DatabaseNotInitialized()
+        
         with self.db.driver.session() as session:
             session.run(
                 "MATCH (n) DETACH DELETE n"

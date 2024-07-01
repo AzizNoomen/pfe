@@ -1,13 +1,13 @@
-from fastapi import APIRouter, HTTPException, File, UploadFile
+from fastapi import APIRouter, HTTPException, File, UploadFile, Depends
 from typing import List
 from app.services.graph_service import GraphService
 from pathlib import Path
 
-router = APIRouter()
+router = APIRouter(prefix="/ingestion_service")
 graph_service = GraphService()
 
 @router.post("/upload_pdfs")
-async def upload_pdfs(files: List[UploadFile] = File(...)):
+async def upload_pdfs(files: List[UploadFile] = File(...), graph_service: GraphService = Depends()):
     try:
         df = graph_service.load_documents(files)
         dfg1 = await graph_service.generate_graph(df)
@@ -19,7 +19,7 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/delete_all")
-def delete_all():
+def delete_all(graph_service: GraphService = Depends()):
     try:
         graph_service.delete_all()
         return {"message": "Graph deleted successfully"}

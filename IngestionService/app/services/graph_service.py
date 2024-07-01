@@ -8,7 +8,6 @@ from typing import List
 from pathlib import Path
 from fastapi import UploadFile
 from langchain_community.document_loaders import PyPDFLoader
-from sentence_transformers import SentenceTransformer
 from app.repositories.graph_repository import GraphRepository
 from app.helpers.df_helpers import documents2Dataframe, df2Graph, graph2Df
 
@@ -60,6 +59,10 @@ class GraphService:
         logger.info("Concepts list created %s", len(concepts_list))
         dfg1 = await graph2Df(concepts_list)
 
+        dfg1.replace("", np.nan, inplace=True)
+        dfg1.dropna(subset=["node_1", "node_2", 'edge'], inplace=True)
+        dfg1 = dfg1[['node_1', 'node_2', 'edge', 'chunk_id', 'source']]
+        
         logger.info("Concepts dataframe created with shape: %s", dfg1.shape)
 
         return dfg1

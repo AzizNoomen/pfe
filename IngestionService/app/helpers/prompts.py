@@ -27,7 +27,7 @@ async def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
             "\tTerms can be related to many other terms\n\n"
         "Thought 3: Find out the relation between each such related pair of terms. \n\n"
         "Format your output as a list of json. Each element of the list contains a pair of terms"
-        "and the relation between them, like the follwing: \n"
+        "and the relation between them, strictly like the follwing: \n"
         "[\n"
         "   {\n"
         '       "node_1": "A concept from extracted ontology",\n'
@@ -41,7 +41,7 @@ async def graphPrompt(input: str, metadata={}, model="mistral-openorca:latest"):
 
     USER_PROMPT = f"context: ```{input}``` \n\n output: "
     async with httpx.AsyncClient(timeout=20000) as client:
-        response = await client.post(f"http://model-service:8001/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+        response = await client.post(f"http://model-service:8001/api/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
         if response.status_code == 200:
             logger.info("response from model service",)
         else:
@@ -80,7 +80,7 @@ async def generationPrompt(Semantic_search_results, query, model="mistral-openor
 
     # Generate a response using the language model
     async with httpx.AsyncClient(timeout=200) as client:
-        response = await client.post("http://Model-Service:8001/ollama/generate_text", json={"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+        response = await client.post("http://Model-Service:8001/api/ollama/generate_text", json={"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
 
     try:
         result = json.loads(response)
