@@ -43,6 +43,7 @@ class RetrievalRepository:
 
         return df_results
 
+
     async def semantic_search(self, df: pd.DataFrame, top_n: int = 10, similarity_threshold: float = 0.5) -> pd.DataFrame:
         edges = df['edge'].tolist()
         embeddings = []
@@ -82,7 +83,7 @@ class RetrievalRepository:
             context_set = set(record['context'])
             new_record = {
                 'node_1': record['node_source'],
-                'text': record['text'],
+                'relationship': record['text'],
                 'node_2': record['node_target'],
                 'score': record['score'],
                 'context': list(context_set)
@@ -93,6 +94,34 @@ class RetrievalRepository:
         logger.info("semantic search done")
         return df_results
 
-    
+    def get_all(self) -> pd.DataFrame:
+        query = """
+        MATCH (n)-[r]->(m)
+        RETURN n.name AS node_source, r.title AS text, m.name AS node_target
+        LIMIT 100
+        """
+
+        with self.db.driver.session() as session:
+            result = session.run(query)
+            records = [r for r in result]
+        
+        records_with_unique_context = []
+        for record in records:
+            if record['text']:
+                new_record = {
+                    'node_1': record['node_source'],
+                    'relationship': record['text'],
+                    'node_2': record['node_target']
+                }
+            else:
+                new_record = {
+                    'node_1': record['node_source'],
+                    'relationship': "contextual proximity",
+                    'node_2': record['node_target']
+                }
+            records_with_unique_context.append(new_record)
+
+        df_results = pd.DataFrame(records_with_unique_context)
+        return df_results
     
 

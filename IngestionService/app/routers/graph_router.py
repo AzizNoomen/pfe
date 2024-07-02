@@ -6,7 +6,7 @@ router = APIRouter(prefix="/ingestion_service")
 graph_service = GraphService()
 
 @router.post("/upload_pdfs")
-async def upload_pdfs(files: List[UploadFile] = File(...), graph_service: GraphService = Depends()):
+async def upload_pdfs(files: List[UploadFile] = File(...)):
     try:
         df = graph_service.load_documents(files)
         dfg1 = await graph_service.generate_graph(df)
@@ -18,7 +18,7 @@ async def upload_pdfs(files: List[UploadFile] = File(...), graph_service: GraphS
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/delete_all")
-def delete_all(graph_service: GraphService = Depends()):
+def delete_all():
     try:
         graph_service.delete_all()
         return {"message": "Graph deleted successfully"}

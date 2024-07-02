@@ -18,8 +18,6 @@ class RetrievalService:
         df_question = query2Dataframe(question)
         question_concepts_list = await query2Graph(df_question, model=model)
 
-        logger.info("question concepts")
-
         dfg_question = await graph2Df(question_concepts_list)
 
         dfg_question.replace("", np.nan, inplace=True)
@@ -29,9 +27,10 @@ class RetrievalService:
         semantic_results = await self.retrieval_repository.semantic_search(dfg_question, top_n=top_n, similarity_threshold=similarity_threshold)
         combined_results = pd.concat([keyword_results, semantic_results], ignore_index=True)
 
-        logger.info("combined results", combined_results)
-        
         return combined_results
+
+    def get_all(self) -> pd.DataFrame:
+        return self.retrieval_repository.get_all()
 
     def close(self):
         self.retrieval_repository.close()
