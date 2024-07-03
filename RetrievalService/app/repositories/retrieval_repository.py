@@ -53,7 +53,7 @@ class RetrievalRepository:
         for e in edges:
             try:
                 async with httpx.AsyncClient(timeout=2000) as client:
-                    response = await client.post(f"http://model-service:8001/api/ollama/encode", json={"model": "all-minilm", "prompt": e})
+                    response = await client.post(f"http://model-service:8000/api/ollama/encode", json={"model": "all-minilm", "prompt": e})
                     response.raise_for_status()
                     embedding = response.json()
                     embeddings.append(embedding)

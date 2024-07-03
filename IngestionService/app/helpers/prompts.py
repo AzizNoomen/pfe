@@ -45,7 +45,7 @@ async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model: str = "m
     while attempt < max_retries and result is None:
 
         async with httpx.AsyncClient(timeout=20000) as client:
-            response = await client.post(f"http://model-service:8001/api/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+            response = await client.post(f"http://model-service:8000/api/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
             if response.status_code == 200:
                 logger.info("response from model service",)
             else:

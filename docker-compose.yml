@@ -6,7 +6,7 @@ services:
       context: ./IngestionService
       dockerfile: Dockerfile
     ports:
-      - 8000:8000
+      - 8001:8001
     environment:
       - NEO4J_URI=neo4j://neo-db:7687
       - USER_NAME=neo4j
@@ -29,6 +29,15 @@ services:
     depends_on:
       - neo-db
     container_name: Retrieval-Service
+  
+
+  generation-service:
+    build:
+      context: ./GenerationService
+      dockerfile: Dockerfile
+    ports:
+      - 8003:8003
+    container_name: Generation-Service
 
 
   model-service:
@@ -36,7 +45,7 @@ services:
       context: ./ModelService
       dockerfile: Dockerfile
     ports:
-      - 8001:8001
+      - 8000:8000
     environment:
       - OLLAMA_HOST=http://ollama:11434
     depends_on:
@@ -57,6 +66,7 @@ services:
       - NEO4J_dbms_security_procedures_unrestricted=gds.*, apoc.*
     volumes:
       - neo4j_data:/data
+      - neo4j_plugins:/plugins
     container_name: neo4j-database
 
 
@@ -77,4 +87,5 @@ services:
 
 volumes:
   neo4j_data:
+  neo4j_plugins:
   ollama:

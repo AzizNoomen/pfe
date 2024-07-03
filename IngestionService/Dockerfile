@@ -11,7 +11,7 @@ COPY main.py .
 
 ENV PYTHONPATH=/app
 
-EXPOSE 8000
+EXPOSE 8001
 
 CMD ["python", "main.py"]
 
