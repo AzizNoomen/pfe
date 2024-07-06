@@ -1,6 +1,19 @@
 version: '3'
 services:
 
+  model-service:
+    build:
+      context: ./ModelService
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    container_name: Model-Service
+
+
   ingestion-service:
     build:
       context: ./IngestionService
@@ -40,18 +53,14 @@ services:
     container_name: Generation-Service
 
 
-  model-service:
+  bff:
     build:
-      context: ./ModelService
+      context: ./BFF
       dockerfile: Dockerfile
     ports:
-      - 8000:8000
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
-    depends_on:
-      - ollama
-    container_name: Model-Service
-
+      - 8004:8004
+    container_name: BFF
+  
 
   neo-db:
     image: neo4j:5.20-community
