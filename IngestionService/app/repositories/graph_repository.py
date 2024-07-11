@@ -41,7 +41,7 @@ class GraphRepository:
                 if row['edge'] != 'contextual proximity':
                     try:
                         async with httpx.AsyncClient(timeout=2000) as client:
-                            response = await client.post(f"http://model-service:8000/api/ollama/encode", json={"model": "all-minilm", "prompt": row['edge']})
+                            response = await client.post(f"http://model-service:8000/api/ollama/encode", json={"model": "all-minilm:latest", "prompt": row['edge']})
                             response.raise_for_status()
                             embedding = response.json()
                     except httpx.HTTPStatusError:
