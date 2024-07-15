@@ -16,7 +16,7 @@ services:
     ports:
       - 8000:8000
     environment:
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_HOST=http://ollama:11434  #check this
     depends_on:
       - ollama
     container_name: Model-Service
