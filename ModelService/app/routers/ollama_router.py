@@ -1,9 +1,12 @@
-from fastapi import APIRouter, File, UploadFile, Body
-import logging
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, File, UploadFile, Body, status, Query
+from app.exceptions.api_exception_handler import APIRequestException
+from configuration.dependencies import DependencyContainer
 from app.services.ollama_service import OllamaService
+from fastapi.responses import StreamingResponse
+from dependency_injector.wiring import Provide, inject
 from app.schemas.ollama_schema import (
     EncodeRequest,
+    EncodeResponse,
     OllamaModelListResponse,
     GenericResponse,
     ShowModelFullResponse,
@@ -11,61 +14,128 @@ from app.schemas.ollama_schema import (
 )
 
 router = APIRouter(prefix="/ollama")
-ollama_service = OllamaService()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+@router.post("/text-generation", response_model=GenericResponse)
+@inject
+def generate_text(request_body: GenerateTextRequest = Body(...),
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        response = ollama_service.generate_text(**request_body.dict())
+        return StreamingResponse(response, media_type="text/plain")
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
 
 
-@router.post("/generate_text", response_model=GenericResponse)
-async def generate_text(request_body: GenerateTextRequest = Body(...)):
-    logger.info("Generate text endpoint reached successfully")
-    response = ollama_service.generate_text(**request_body.dict())
-    return StreamingResponse(response, media_type="text/plain")
+@router.post("/create-model", response_model=GenericResponse)
+@inject
+def create_model(model_name: str = Query(...),
+                model_file: UploadFile = File(...),
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        model_content = model_file.read()
+        response = ollama_service.create_model(model_name, model_content)
+        return {"response": response}
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
 
-@router.post("/create_model", response_model=GenericResponse)
-async def create_model(model_name: str, model_file: UploadFile = File(...)):
-    model_content = await model_file.read()
-    response = ollama_service.create_model(model_name, model_content)
-    return {"response": response}
 
-@router.post("/pull_model", response_model=GenericResponse)
-async def pull_model(model_name: str, insecure: bool = False):
-    response = ollama_service.pull_model(model_name, insecure)
-    return {"response": response}
+@router.post("/pull-model", response_model=GenericResponse)
+@inject
+def pull_model(model_name: str = Query(...),
+                insecure: bool = Query(False),
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        response = ollama_service.pull_model(model_name, insecure)
+        return {"response": response}
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
 
-@router.post("/push_model", response_model=GenericResponse)
-async def push_model(model_name: str, insecure: bool = False):
-    response = ollama_service.push_model(model_name, insecure)
-    return {"response": response}
 
-@router.get("/list_models", response_model=OllamaModelListResponse)
-async def list_models():
-    response = ollama_service.list_models()
-    return {"response": response}
+@router.post("/push-model", response_model=GenericResponse)
+@inject
+def push_model(model_name: str = Query(...),
+                insecure: bool = Query(False),
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        response = ollama_service.push_model(model_name, insecure)
+        return {"response": response}
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
 
-@router.post("/copy_model", response_model=GenericResponse)
-async def copy_model(source: str, destination: str):
-    response = ollama_service.copy_model(source, destination)
-    return {"response": response}
 
-@router.delete("/delete_model", response_model=GenericResponse)
-async def delete_model(model_name: str):
-    response = ollama_service.delete_model(model_name)
-    return {"response": response}
+@router.get("/models", response_model=OllamaModelListResponse)
+@inject
+def list_models(ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])):
+    try:
+        response = ollama_service.list_models()
+        return {"response": response}
 
-@router.get("/show_model", response_model=ShowModelFullResponse)
-async def show_model(model_name: str):
-    response = ollama_service.show_model(model_name)
-    return {"response": response}
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
 
-@router.get("/check_ollama_health", response_model=GenericResponse)
-async def check_ollama_health():
+
+@router.post("/copy-model", response_model=GenericResponse)
+@inject
+def copy_model(source: str = Query(...),  # Example of a query parameter
+                destination: str = Query(...),  # Example of a query parameter
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        response = ollama_service.copy_model(source, destination)
+        return {"response": response}
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
+
+
+@router.delete("/model", response_model=GenericResponse)
+@inject
+def delete_model(model_name: str = Query(...),
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        response = ollama_service.delete_model(model_name)
+        return {"response": response}
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
+
+
+@router.get("/model", response_model=ShowModelFullResponse)
+@inject
+def show_model(model_name: str = Query(...),
+                ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
+                ):
+    try:
+        response = ollama_service.show_model(model_name)
+        return {"response": response}
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))
+
+
+@router.get("/ollama-health", response_model=GenericResponse)
+@inject
+def check_ollama_health(ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])):
     response = ollama_service.check_ollama_health()
     return {"response": response}
+    
 
-@router.post("/encode", response_model=list)
-async def encode(request_body: EncodeRequest = Body(...)):
-    response = ollama_service.encode(**request_body.dict())
-    return response
+@router.post("/encode", response_model=EncodeResponse)
+@inject
+def encode(request_body: EncodeRequest = Body(...),
+            ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])):
+    try:
+        response = ollama_service.encode(**request_body.dict())
+        return response
+    
+    except ValueError as value_error:
+        raise APIRequestException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(value_error))

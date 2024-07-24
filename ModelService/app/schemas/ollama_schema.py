@@ -1,11 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Any, Dict, Optional, List
 
-from pydantic import BaseModel
-from typing import List, Optional
-
-#ollama list models reponse schemas:
-
 class OllamaModelDetails(BaseModel):
     parent_model: str
     format: str
@@ -25,21 +20,12 @@ class OllamaModel(BaseModel):
 class OllamaModelListResponse(BaseModel):
     response: List[OllamaModel]
 
-
-class ShowModelDetails(BaseModel):
-    parent_model: str
-    format: str
-    family: str
-    families: List[str]
-    parameter_size: str
-    quantization_level: str
-
 class ShowModelResponse(BaseModel):
     license: str
     modelfile: str
     parameters: str
     template: str
-    details: ShowModelDetails
+    details: OllamaModelDetails
 
 class ShowModelFullResponse(BaseModel):
     response: ShowModelResponse
@@ -47,16 +33,17 @@ class ShowModelFullResponse(BaseModel):
 class GenericResponse(BaseModel):
     response: Optional[str] = None
 
-
 class GenerateTextRequest(BaseModel):
     model_name: str
     prompt: str
-    system: Optional[str] = None
-    template: Optional[str] = None
-    context: Optional[List[int]] = None
-    options: Optional[Dict[str, Any]] = None
-
+    system: str | None = None
+    template: str | None = None
+    context: List[int] | None = None
+    options: Dict[str, Any] | None = None
 
 class EncodeRequest(BaseModel):
+    model_name: str
     prompt: str
-    model: str
+
+class EncodeResponse(BaseModel):
+    embedding: List[float]

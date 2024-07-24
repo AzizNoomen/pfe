@@ -1,25 +1,21 @@
-import logging
 from fastapi import FastAPI
+from uvicorn import Server, Config
+
+from configuration.injection_container import DependencyContainer
+from configuration.config import app_config
 from app.middlewares.cors_middleware import middlewares
-from app.routers.graph_router import router as graph_router
+from app.routers.ingestion_router import router as ingestion_router
 
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+app = FastAPI(title=app_config.APP_TITLE, middleware=middlewares)
 
-app = FastAPI(title="Ingestion Service", middleware=middlewares)
+app.container = DependencyContainer()
+app.container.db_helpers().init_database()
 
-try:
-    app.include_router(graph_router, prefix="/api")
-    logger.info("graph router included successfully.")
-    
-
-except AttributeError as e:
-    logger.error("Error including graph router: %s", e)
+app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])
 
 
 if __name__ == '__main__':
-    import uvicorn
-    logger.info("Starting server.")
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    Server(Config(app=app,
+                    host=app_config.APP_HOST,
+                    port=app_config.APP_PORT)).run()

@@ -7,9 +7,9 @@ router = APIRouter(prefix="/retrieval_service")
 retrieval_service = RetrievalService()
 
 @router.get("/retrieve", response_model=List[HybridSearchResult])
-async def retrieve(question: str, model: str = "zephyr:latest", top_n: int = 10, similarity_threshold: float = 0.5):
+async def retrieve(question: str, model: str = "zephyr:latest", top_n: int = 10, similarity_threshold: float = 0.5, reranker:str = None):
     try:
-        results = await retrieval_service.retrieve(question, model, top_n, similarity_threshold)
+        results = await retrieval_service.retrieve(question, model, top_n, similarity_threshold, reranker)
         return results.to_dict(orient='records')
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

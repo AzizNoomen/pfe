@@ -35,7 +35,7 @@ class RetrievalRepository:
             result = session.run(query, {'keywords': nodes})
             relationships = [(record['node_1'], record['relationship'], record['node_2']) for record in result]
 
-        df_results = pd.DataFrame(relationships, columns=['node_1', 'text', 'node_2'])
+        df_results = pd.DataFrame(relationships, columns=['node_1', 'relationship', 'node_2'])
         df_results['score'] = 1
         df_results['context'] = [[] for _ in range(len(df_results))]
 
@@ -125,3 +125,4 @@ class RetrievalRepository:
         return df_results
     
 
+    

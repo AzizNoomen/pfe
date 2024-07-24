@@ -1,13 +1,9 @@
 import uuid
 import pandas as pd
 import numpy as np
-from .prompts import graphPrompt
-import logging
 import asyncio
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from .prompts import graphPrompt
+from configuration.logging import logger
 
 
 def documents2Dataframe(documents) -> pd.DataFrame:
