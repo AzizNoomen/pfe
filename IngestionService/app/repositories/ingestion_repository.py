@@ -74,7 +74,7 @@ class IngestionRepository:
         logger.info('edges added successfully')
 
 
-    async def merge_nodes(self, similarity_threshold=0.8):
+    async def merge_nodes(self, similarity_threshold:float = 0.8) -> None:
         nodes = []
         embeddings = []
 

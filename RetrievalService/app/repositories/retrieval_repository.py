@@ -1,17 +1,13 @@
 import httpx
 import pandas as pd
-import logging
-from app.exceptions.retrieval_exceptions import ModelServiceUnavailable
-from app.database import db
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from app.exceptions.service_exceptions import ModelServiceUnavailable
+from app.helpers.db_helpers import DBHelper
+from configuration.logging import logger
 
 
 class RetrievalRepository:
-    def __init__(self):
-        self.db = db
+    def __init__(self, database_helper: DBHelper):
+        self.database_helper = database_helper
     
     def keyword_search(self, df: pd.DataFrame) -> pd.DataFrame:
         logger.info("key word search started")
@@ -31,7 +27,7 @@ class RetrievalRepository:
         RETURN node_1, relationship, node_2
         """
         
-        with self.db.driver.session() as session:
+        with self.database_helper.session() as session:
             result = session.run(query, {'keywords': nodes})
             relationships = [(record['node_1'], record['relationship'], record['node_2']) for record in result]
 
@@ -53,10 +49,11 @@ class RetrievalRepository:
         for e in edges:
             try:
                 async with httpx.AsyncClient(timeout=2000) as client:
-                    response = await client.post(f"http://model-service:8000/api/ollama/encode", json={"model": "all-minilm", "prompt": e})
+                    response = await client.post(f"http://model-service:8000/api/ollama/encode", json={"model_name": "all-minilm:latest", "prompt": e})
                     response.raise_for_status()
-                    embedding = response.json()
+                    embedding = response.json()['embedding']
                     embeddings.append(embedding)
+                    
             except httpx.HTTPStatusError:
                 raise ModelServiceUnavailable()
 
@@ -74,7 +71,7 @@ class RetrievalRepository:
         RETURN node_source, text, score, node_target, context
         """
 
-        with self.db.driver.session() as session:
+        with self.database_helper.session() as session:
             result = session.run(query, {'edge_embeddings': embeddings, 'similarity_threshold': similarity_threshold, 'top_n': top_n})
             records = [r for r in result]
 
@@ -101,7 +98,7 @@ class RetrievalRepository:
         LIMIT 100
         """
 
-        with self.db.driver.session() as session:
+        with self.database_helper.session() as session:
             result = session.run(query)
             records = [r for r in result]
         

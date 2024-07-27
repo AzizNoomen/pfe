@@ -1,24 +1,20 @@
-import logging
 from fastapi import FastAPI
+from uvicorn import Server, Config
+from configuration.injection_container import DependencyContainer
+from configuration.config import app_config
 from app.middlewares.cors_middleware import middlewares
 from app.routers.retrieval_router import router as retrieval_router
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Retrieval Service", middleware=middlewares)
+app = FastAPI(title=app_config.APP_TITLE, middleware=middlewares)
 
-try:
-    app.include_router(retrieval_router, prefix="/api")
-    logger.info("retrieval router included successfully.")
+app.container = DependencyContainer()
+app.container.db_helpers().init_database()
+
+app.include_router(retrieval_router, prefix="/api")
     
 
-except AttributeError as e:
-    logger.error("Error including retrieval router: %s", e)
-
-
 if __name__ == '__main__':
-    import uvicorn
-    logger.info("Starting server.")
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    Server(Config(app=app,
+                    host=app_config.APP_HOST,
+                    port=app_config.APP_PORT)).run()

@@ -4,14 +4,7 @@ from configuration.dependencies import DependencyContainer
 from app.services.ollama_service import OllamaService
 from fastapi.responses import StreamingResponse
 from dependency_injector.wiring import Provide, inject
-from app.schemas.ollama_schema import (
-    EncodeRequest,
-    EncodeResponse,
-    OllamaModelListResponse,
-    GenericResponse,
-    ShowModelFullResponse,
-    GenerateTextRequest
-)
+from app.schemas.ollama_schema import (EncodeRequest, EncodeResponse, OllamaModelListResponse, GenericResponse, ShowModelFullResponse, GenerateTextRequest)
 
 router = APIRouter(prefix="/ollama")
 
@@ -84,8 +77,8 @@ def list_models(ollama_service: OllamaService = Depends(Provide[DependencyContai
 
 @router.post("/copy-model", response_model=GenericResponse)
 @inject
-def copy_model(source: str = Query(...),  # Example of a query parameter
-                destination: str = Query(...),  # Example of a query parameter
+def copy_model(source: str = Query(...),
+                destination: str = Query(...),
                 ollama_service: OllamaService = Depends(Provide[DependencyContainer.ollama_service])
                 ):
     try:

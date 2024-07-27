@@ -1,19 +1,16 @@
-import logging
 import pandas as pd
 import numpy as np
+from app.exceptions.service_exceptions import ModelServiceUnavailable
 from app.repositories.retrieval_repository import RetrievalRepository
 from app.helpers.df_helpers import query2Dataframe, query2Graph, graph2Df
 from sentence_transformers import CrossEncoder
-
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from configuration.logging import logger
+import httpx
 
 
 class RetrievalService:
-    def __init__(self):
-        self.retrieval_repository = RetrievalRepository()
+    def __init__(self, retrieval_repository: RetrievalRepository):
+        self.retrieval_repository = retrieval_repository
     
     def cross_encoder_rerank(self, question:str, df: pd.DataFrame, top_k:int, reranker:str ="ms-marco-MiniLM-L-6-v2") -> pd.DataFrame:
         logger.info("dataframe content", df)
@@ -46,16 +43,31 @@ class RetrievalService:
         return df_sorted.head(top_k)
     
 
-    async def retrieve(self, question: str, model: str = "zephyr:latest", top_n: int = 10, similarity_threshold: float = 0.5, reranker:str = None) -> pd.DataFrame:
+    async def handle_question(self, question: str, model: str = "zephyr:latest") -> pd.DataFrame:
         df_question = query2Dataframe(question)
         question_concepts_list = await query2Graph(df_question, model=model)
 
-        dfg_question = await graph2Df(question_concepts_list)
+        if question_concepts_list:
+            dfg_question = await graph2Df(question_concepts_list)
+            dfg_question.replace("", np.nan, inplace=True)
+            dfg_question.dropna(subset=["node_1", "node_2", 'edge'], inplace=True)
+            return dfg_question
+        
+        else:
+            df = pd.DataFrame([{"edge": question}])
+            return df
 
-        dfg_question.replace("", np.nan, inplace=True)
-        dfg_question.dropna(subset=["node_1", "node_2", 'edge'], inplace=True)
 
-        keyword_results = self.retrieval_repository.keyword_search(dfg_question)
+    async def retrieve(self, question: str, model: str = "zephyr:latest", top_n: int = 10, similarity_threshold: float = 0.5, reranker:str = None) -> pd.DataFrame:
+        
+        dfg_question = await self.handle_question(question, model)
+
+        if 'node1' in dfg_question.columns:
+            keyword_results = self.retrieval_repository.keyword_search(dfg_question)
+        
+        else:
+            keyword_results = pd.DataFrame()
+        
         semantic_results = await self.retrieval_repository.semantic_search(dfg_question, top_n=top_n + 5, similarity_threshold=similarity_threshold)
         combined_results = pd.concat([keyword_results, semantic_results], ignore_index=True)
         logger.info("dataframe content", combined_results)
@@ -70,6 +82,3 @@ class RetrievalService:
 
     def get_all(self) -> pd.DataFrame:
         return self.retrieval_repository.get_all()
-
-    def close(self):
-        self.retrieval_repository.close()

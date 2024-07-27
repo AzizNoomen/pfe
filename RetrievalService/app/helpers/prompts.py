@@ -1,11 +1,7 @@
 import httpx
-import logging
 from typing import List, Dict, Any
-
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from app.exceptions.service_exceptions import ModelServiceUnavailable
+from configuration.logging import logger
 
 async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model: str = "mistral-openorca:latest") -> List[Dict[str, Any]]:
     if model == None:
@@ -43,13 +39,17 @@ async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model: str = "m
     USER_PROMPT = f"context: ```{input}``` \n\n output: "
 
     while attempt < max_retries and result is None:
+        try:
+            async with httpx.AsyncClient(timeout=20000) as client:
+                response = await client.post(f"http://model-service:8000/api/ollama/text-generation", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+                if response.status_code == 200:
+                    logger.info("response from model service",)
+                else:
+                    logger.error("Error in response from model service. Status code:", response.status_code, "Content:", response.content)
+        
+        except httpx.HTTPStatusError:
+                raise ModelServiceUnavailable()
 
-        async with httpx.AsyncClient(timeout=20000) as client:
-            response = await client.post(f"http://model-service:8000/api/ollama/generate_text", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
-            if response.status_code == 200:
-                logger.info("response from model service",)
-            else:
-                logger.error("Error in response from model service. Status code:", response.status_code, "Content:", response.content)
 
         try:
             result = response.json()

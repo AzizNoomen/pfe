@@ -1,9 +1,9 @@
 from pydantic_settings import BaseSettings
 
 class AppConfig(BaseSettings):
-    APP_TITLE: str = "Ingestion Service"
+    APP_TITLE: str = "Retrieval Service"
     APP_HOST: str = "0.0.0.0"
-    APP_PORT: int = 8001
+    APP_PORT: int = 8002
 
 class DataBaseConfig(BaseSettings):
     """Configuration class for connecting to the accompanying database"""

@@ -11,6 +11,7 @@ from app.repositories.ingestion_repository import IngestionRepository
 from app.helpers.df_helpers import documents2Dataframe, df2Graph, graph2Df
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain.embeddings import HuggingFaceEmbeddings
+from fastapi import File, UploadFile
 from configuration.logging import logger
 
 
@@ -159,8 +160,19 @@ class IngestionService:
         await self.ingestion_repository.add_edges(df)
 
 
-    async def merge_nodes(self, similarity_threshold=0.8):
+    async def merge_nodes(self, similarity_threshold:float = 0.8) -> None:
         await self.ingestion_repository.merge_nodes(similarity_threshold)
+
+
+    async def ingest(self, files: List[UploadFile] = File(...), chunking_method:str = "regular") -> None:
+        documents = self.load_documents(files)
+        df = self.chunking(documents,chunking_method)
+        dfg1 = await self.generate_graph(df)
+        dfg2 = self.contextual_proximity(dfg1)
+        dfg = self.merge_relationships(dfg1, dfg2)
+        await self.contruct_graph(dfg)
+        await self.merge_nodes()
+        return {"message": "Documents uploaded and graph created successfully"}
 
 
     def delete_all(self) -> None:
