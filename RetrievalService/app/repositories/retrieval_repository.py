@@ -3,6 +3,7 @@ import pandas as pd
 from app.exceptions.service_exceptions import ModelServiceUnavailable
 from app.helpers.db_helpers import DBHelper
 from configuration.logging import logger
+from fastapi.responses import JSONResponse
 
 
 class RetrievalRepository:
@@ -92,10 +93,10 @@ class RetrievalRepository:
         return df_results
 
     def get_all(self) -> pd.DataFrame:
+        
         query = """
         MATCH (n)-[r]->(m)
         RETURN n.name AS node_source, r.title AS text, m.name AS node_target
-        LIMIT 100
         """
 
         with self.database_helper.session() as session:
@@ -121,5 +122,31 @@ class RetrievalRepository:
         df_results = pd.DataFrame(records_with_unique_context)
         return df_results
     
+    def get_graph(self) -> JSONResponse:
+        df = self.get_all()
+        nodes = []
+        node_ids = set()
+        edges = []
+
+        for _, row in df.iterrows():
+            # Add node 1 if not already in the list
+            if row['node_1'] not in node_ids:
+                nodes.append({"data": {"id": row['node_1'], "label": row['node_1']}})
+                node_ids.add(row['node_1'])
+            
+            # Add node 2 if not already in the list
+            if row['node_2'] not in node_ids:
+                nodes.append({"data": {"id": row['node_2'], "label": row['node_2']}})
+                node_ids.add(row['node_2'])
+            
+            # Add edge
+            edges.append({"data": {"source": row['node_1'], "target": row['node_2'], "label": row['relationship']}})
+
+        graph_data = {
+            "nodes": nodes,
+            "edges": edges
+        }
+
+        return JSONResponse(content=graph_data)
 
     

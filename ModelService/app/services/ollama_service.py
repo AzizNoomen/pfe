@@ -3,7 +3,7 @@ import requests
 import json
 from fastapi import HTTPException
 from typing import Generator
-from app.exceptions.service_exceptions import InvalidModelFileException, ModelNotFoundException
+from app.exceptions.service_exceptions import InvalidModelFileException, ModelAlreadyExistsException, ModelNotFoundException
 from app.schemas.ollama_schema import GenericResponse, OllamaModelListResponse, ShowModelFullResponse
 from configuration.config import app_config
 from configuration.logging import logger
@@ -64,8 +64,8 @@ class OllamaService(ModelService):
     def pull_model(self, model_name: str, insecure: bool = False) -> str:
         available_models = self.list_models()
 
-        if not any(model['name'] == model_name for model in available_models):
-            raise ModelNotFoundException(model_name)
+        if not all(model['name'] != model_name for model in available_models):
+            raise ModelAlreadyExistsException(model_name)
         
         try:
             url = f"{app_config.BASE_URL}/api/pull"

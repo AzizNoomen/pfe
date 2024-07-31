@@ -7,6 +7,7 @@ from typing import List
 from pathlib import Path
 from fastapi import UploadFile
 from langchain_community.document_loaders import PyPDFLoader,TextLoader, Docx2txtLoader, UnstructuredPowerPointLoader
+from app.exceptions.service_exceptions import NoConceptsExtracted, NoTextExtracted
 from app.repositories.ingestion_repository import IngestionRepository
 from app.helpers.df_helpers import documents2Dataframe, df2Graph, graph2Df
 from langchain_experimental.text_splitter import SemanticChunker
@@ -48,7 +49,9 @@ class IngestionService:
         return documents
     
     def chunking(self, documents:List[dict], chunking_method:str = "regular") -> pd.DataFrame:
-
+        
+        logger.info("chunking method: {}", chunking_method)
+        
         if chunking_method == "regular":
             splitter = RecursiveCharacterTextSplitter(
                 chunk_size=1500,
@@ -65,15 +68,23 @@ class IngestionService:
             raise ValueError(f"Unsupported chunking method: {chunking_method}")
 
         chunks = splitter.split_documents(documents)
-        logger.info("number of chunks: %d", len(chunks))
+        logger.info("number of chunks: {}", len(chunks))
+        
+        if not chunks:
+            raise NoTextExtracted()
+        
         df = documents2Dataframe(chunks)
         logger.info("Document dataframe created with shape: %s", df.shape)
 
         return df
 
 
-    async def generate_graph(self, df: pd.DataFrame) -> pd.DataFrame:
-        concepts_list = await df2Graph(df, model='zephyr:latest')
+    async def generate_graph(self, df: pd.DataFrame, model_name:str = "zephyr:latest") -> pd.DataFrame:
+        concepts_list = await df2Graph(df, model_name)
+        
+        if not concepts_list:
+            raise NoConceptsExtracted()
+        
         logger.info("Concepts list created %s", len(concepts_list))
         dfg1 = await graph2Df(concepts_list)
 
@@ -164,10 +175,10 @@ class IngestionService:
         await self.ingestion_repository.merge_nodes(similarity_threshold)
 
 
-    async def ingest(self, files: List[UploadFile] = File(...), chunking_method:str = "regular") -> None:
+    async def ingest(self, files: List[UploadFile] = File(...), chunking_method:str = "regular", model_name:str = "zephyr:latest") -> None:
         documents = self.load_documents(files)
         df = self.chunking(documents,chunking_method)
-        dfg1 = await self.generate_graph(df)
+        dfg1 = await self.generate_graph(df, model_name)
         dfg2 = self.contextual_proximity(dfg1)
         dfg = self.merge_relationships(dfg1, dfg2)
         await self.contruct_graph(dfg)

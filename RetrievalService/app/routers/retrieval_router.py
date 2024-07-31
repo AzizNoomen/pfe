@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List
+
+from fastapi.responses import JSONResponse
 from app.services.retrieval_service import RetrievalService
 from app.schemas.retrieval_schemas import RetrievalResult, HybridSearchResult
 from dependency_injector.wiring import Provide, inject
@@ -34,6 +36,19 @@ def get_all(retrieval_service: RetrievalService = Depends(
     try:
         results = retrieval_service.get_all()
         return results.to_dict(orient='records')
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/graph", response_class=JSONResponse)
+@inject
+def get_graph(retrieval_service: RetrievalService = Depends(
+        Provide[DependencyContainer.retrieval_service])):
+    
+    try:
+        results = retrieval_service.get_graph()
+        return results
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

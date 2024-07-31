@@ -3,10 +3,9 @@ from typing import List, Dict, Any
 from configuration.logging import logger
 from app.exceptions.service_exceptions import ModelServiceUnavailable
 
-async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model: str = "mistral-openorca:latest") -> List[Dict[str, Any]]:
-    if model == None:
-        model = "mistral-openorca:latest"
-
+async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model_name: str = "zephyr:latest") -> List[Dict[str, Any]]:
+    logger.info("Chosen model: {}", model_name)
+    
     SYS_PROMPT = (
         "You are a network graph maker who extracts terms and their relations from a given context. "
         "You are provided with a context chunk (delimited by ```) Your task is to extract the ontology "
@@ -42,7 +41,7 @@ async def graphPrompt(input: str, metadata: Dict[str, Any] = {}, model: str = "m
 
         try:
             async with httpx.AsyncClient(timeout=20000) as client:
-                response = await client.post(f"http://model-service:8000/api/ollama/text-generation", json = {"model_name": model, "system": SYS_PROMPT, "prompt": USER_PROMPT})
+                response = await client.post(f"http://model-service:8000/api/ollama/text-generation", json = {"model_name": model_name, "system": SYS_PROMPT, "prompt": USER_PROMPT})
                 if response.status_code == 200:
                     logger.info("response from model service",)
                 else:

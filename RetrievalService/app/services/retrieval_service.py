@@ -1,6 +1,6 @@
+from fastapi.responses import JSONResponse
 import pandas as pd
 import numpy as np
-from app.exceptions.service_exceptions import ModelServiceUnavailable
 from app.repositories.retrieval_repository import RetrievalRepository
 from app.helpers.df_helpers import query2Dataframe, query2Graph, graph2Df
 from sentence_transformers import CrossEncoder
@@ -62,7 +62,7 @@ class RetrievalService:
         
         dfg_question = await self.handle_question(question, model)
 
-        if 'node1' in dfg_question.columns:
+        if ('node_1' and 'node_2') in dfg_question.columns:
             keyword_results = self.retrieval_repository.keyword_search(dfg_question)
         
         else:
@@ -74,6 +74,7 @@ class RetrievalService:
         combined_results.dropna(inplace=True)
 
         if reranker:
+            logger.info("retrieval with reranker")
             reranked_results = self.cross_encoder_rerank(question, combined_results, top_n, reranker)
             return reranked_results
         
@@ -82,3 +83,7 @@ class RetrievalService:
 
     def get_all(self) -> pd.DataFrame:
         return self.retrieval_repository.get_all()
+
+
+    def get_graph(self) -> JSONResponse:
+        return self.retrieval_repository.get_graph()

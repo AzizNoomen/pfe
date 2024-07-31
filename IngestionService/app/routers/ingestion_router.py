@@ -4,6 +4,7 @@ from app.schemas.ingestion_schemas import MessageResponse
 from app.services.ingestion_service import IngestionService
 from dependency_injector.wiring import Provide, inject
 from configuration.injection_container import DependencyContainer
+from configuration.logging import logger
 
 router = APIRouter(prefix="/ingestion_service")
 
@@ -12,11 +13,12 @@ router = APIRouter(prefix="/ingestion_service")
 async def upload_documents(
     files: List[UploadFile] = File(...),
     chunking_method:str = Query("regular"),
+    model_name:str = Query("zephyr:latest"),
     ingestion_service: IngestionService = Depends(
         Provide[DependencyContainer.ingestion_service])):
     
     try:
-        await ingestion_service.ingest(files, chunking_method)
+        await ingestion_service.ingest(files, chunking_method, model_name)
         return MessageResponse(message="Documents uploaded and graph created successfully")
     
     except Exception as e:
