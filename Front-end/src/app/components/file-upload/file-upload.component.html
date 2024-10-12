@@ -1,0 +1,109 @@
+<div class="file-uploader-container">
+  <div class="file-uploader">
+    
+    <i class="fas fa-cog settings-icon"
+        (click)="!isUploading && openSettings()"
+        [@rotateIcon]="iconRotated ? 'rotated' : 'default'"
+        [ngClass]="{'settings-icon-disabled': isUploading}">
+    </i>
+
+      <div class="settings-overlay" *ngIf="showSettings">
+          <div class="settings-content" [@popup]="settingsVisible ? 'visible' : 'hidden'">
+              <h2>Settings</h2>
+              <button class="close-settings" (click)="closeSettings()">
+              <i class="fas fa-times"></i>
+              </button>
+              <div class="dropdown-container">
+              <div class="dropdown-wrapper">
+                  <label class="dropdown-label" *ngIf="selectedOption1">{{ 'LLM' }}</label>
+                  <div class="dropdown" (click)="toggleDropdown(1)">
+                  <span>{{ selectedOption1 || 'Select an LLM' }}</span>
+                  <i class="fas fa-chevron-right arrow" [@rotateArrow]="dropdownOpen1 ? 'down' : 'right'"></i>
+                  </div>
+                  <ul [@slideDown]="dropdownOpen1 ? 'open' : 'closed'" class="dropdown-list">
+                  <li *ngFor="let option of dropdownOptions1" (click)="selectOption(option, 1)">
+                      {{ option }}
+                  </li>
+                  </ul>
+              </div>
+
+              <div class="dropdown-wrapper">
+                  <label class="dropdown-label" *ngIf="selectedOption2">{{ 'Chunking' }}</label>
+                  <div class="dropdown" (click)="toggleDropdown(2)">
+                  <span>{{ selectedOption2 || 'Select chunking' }}</span>
+                  <i class="fas fa-chevron-right arrow" [@rotateArrow]="dropdownOpen2 ? 'down' : 'right'"></i>
+                  </div>
+                  <ul [@slideDown]="dropdownOpen2 ? 'open' : 'closed'" class="dropdown-list">
+                  <li *ngFor="let option of dropdownOptions2" (click)="selectOption(option, 2)">
+                      {{ option }}
+                  </li>
+                  </ul>
+              </div>
+              </div>
+          </div>
+      </div>
+
+
+
+    <!-- Header Section -->
+    <div class="uploader-header">
+      <h2 class="uploader-title">File Uploader</h2>
+      <h4 class="file-completed-status" *ngIf="fileListItems.length > 0">
+        {{ completedFiles }}/{{ fileListItems.length }} Files Completed
+      </h4>
+      
+    </div>
+
+    <!-- File List Section -->
+    <ul class="file-list" #fileList>
+      <li *ngFor="let item of fileListItems; let i = index"
+          [@fileAnimation]="item.state"
+          [class.removing]="item.isRemoving"
+          class="file-item">
+        <div class="file-extension">{{ getFileExtension(item.file.name) }}</div>
+        <div class="file-content-wrapper">
+          <div class="file-content">
+            <div class="file-details">
+              <h5 class="file-name" [ngClass]="{'file-name-removing': item.isRemoving}">
+                {{ item.file.name }}
+              </h5>
+              <div class="file-info">
+                <small class="file-size" *ngIf="item.isAllowed && !item.isDuplicate">
+                  {{ getFileSize(item.file.size) }}
+                </small>
+                <small class="file-divider" *ngIf="item.isAllowed && !item.isDuplicate">•</small>
+                <small class="file-status" [ngClass]="getStatusClass(uploadStatus[i])">
+                  {{ uploadStatus[i] }}
+                </small>
+              </div>
+            </div>
+            <button class="cancel-button" *ngIf="!filesSubmitted" (click)="cancelUpload(i)">
+              <i class="bx bx-x"></i>
+            </button>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <br *ngIf="!isUploading && fileListItems.length == 0">
+    <!-- File Upload Box -->
+    <div class="file-upload-box" #fileUploadBox *ngIf="showDragBox">
+      <h2 class="box-title">
+        <span class="file-instruction" #fileInstruction>Drag files here or </span>
+        <span class="file-browse-button" *ngIf="!draggingFiles" (click)="onFileBrowseButtonClick()">browse</span>
+      </h2>
+      <input class="file-browse-input" type="file" multiple hidden #fileBrowseInput>
+    </div>
+
+    <br *ngIf="!isUploading && fileListItems.length == 0">
+    <br *ngIf="!isUploading">
+    <!-- Upload Button -->
+    <button class="upload-button" *ngIf="fileListItems.length > 0 && !filesSubmitted && allowedFiles" (click)="submitFiles()">
+      Upload
+    </button>
+
+    <!-- Progress Spinner -->
+    <div class="overlay" *ngIf="filesSubmitted && isUploading">
+        <div class="loader"></div>
+    </div>
+  </div>
+</div>

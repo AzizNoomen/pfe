@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+
+.navbar {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%; /* Adjust width as needed */
+    max-width: 1000px; /* Adjust max width as needed */
+    background-color: rgba(255, 255, 255, 0.7); /* Slightly transparent background */
+    border-radius: 50px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for better floating effect */
+    padding: 10px 50px; /* Increased padding for more height and space on the sides */
+    z-index: 1000; /* Ensure it's above other elements */
+    display: flex;
+    justify-content: center; /* Center the content */
+    align-items: center; /* Center items vertically */
+    font-family: 'Inter', sans-serif;
+}
+
+.navbar .nav-links {
+    display: flex; /* Display nav links in a row */
+    flex: 1; /* Allow nav links to take available space */
+    justify-content: space-between; /* Distribute space evenly */
+    margin: 0 20px; /* Add margin to create space on the sides */
+}
+
+.navbar a {
+    color: #333;
+    text-decoration: none;
+    padding: 10px 25px; /* Adjusted padding */
+    border-radius: 20px; /* Adjusted border-radius */
+    font-size: 1.2rem; /* Font size remains the same */
+    transition: background-color 0.3s, transform 0.3s;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex; /* Use flex for alignment */
+    align-items: center; /* Center items vertically */
+}
+
+.navbar a i {
+    margin-right: 8px; /* Space between icon and text */
+    font-size: 1.3rem; /* Adjust icon size if needed */
+    vertical-align: middle; /* Align icon with text */
+}
+
+/* Hover effect with pill-shaped background */
+.navbar a:hover {
+    background-color: rgba(81, 69, 186, 0.1); /* Light pill-shaped background with reduced opacity */
+    color: #032463; /* Change text color to highlight on hover */
+    transform: translateY(-5px); /* Lift on hover */
+    /* Remove underline effect on hover */
+}
+
+/* Styles for the active link */
+.navbar a.active {
+    background-color: #032463; /* Highlight color for the active link */
+    color: white; /* Change text color for better contrast */
+}
+
+/* Adding animations */
+.navbar a::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #032463;
+    transition: transform 0.3s;
+    transform: translateX(-50%) scaleX(0);
+}
+
+/* Underline effect only for the active link */
+.navbar a.active::before {
+    transform: translateX(-50%) scaleX(1);
+}
+
+/* Keyframe animation for smooth appearance */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Applying the animation to each link */
+.navbar a {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.navbar a:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.navbar a:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.navbar a:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.navbar a:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.nav-icon {
+    width: 30px; /* Adjust size as needed */
+    height: auto;
+    vertical-align: middle;
+    margin-right: 8px; /* Space between icon and text */
+}

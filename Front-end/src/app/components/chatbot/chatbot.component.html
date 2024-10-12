@@ -1,0 +1,93 @@
+<div class="chatbot">
+  
+    <i class="fas fa-cog settings-icon"
+        (click)="!loading && openSettings()"
+        [@rotateIcon]="iconRotated ? 'rotated' : 'default'"
+        [ngClass]="{'settings-icon-disabled': loading}">
+    </i>
+
+    <div class="settings-overlay" *ngIf="showSettings">
+        <div class="settings-content" [@popup]="settingsVisible ? 'visible' : 'hidden'">
+            <h2>Settings</h2>
+            <button class="close-settings" (click)="closeSettings()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="dropdown-container">
+                <div class="dropdown-wrapper">
+                    
+                    <label class="dropdown-label" *ngIf="selectedOption1">{{ 'LLM' }}</label>
+                    <div class="dropdown" (click)="toggleDropdown(1)">
+                        <span>{{ selectedOption1 || 'Select an LLM' }}</span>
+                        <i class="fas fa-chevron-right arrow" [@rotateArrow]="dropdownOpen1 ? 'down' : 'right'"></i>
+                    </div>
+                    <ul [@slideDown]="dropdownOpen1 ? 'open' : 'closed'" class="dropdown-list">
+                        <li *ngFor="let option of dropdownOptions1" (click)="selectOption(option, 1)">
+                            {{ option }}
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="dropdown-wrapper">
+                    
+                    <label class="dropdown-label" *ngIf="selectedOption2">{{ 'Cross encoder' }}</label>
+                    <div class="dropdown" (click)="toggleDropdown(2)">
+                        <span>{{ selectedOption2 || 'Select cross encoder' }}</span>
+                        <i class="fas fa-chevron-right arrow" [@rotateArrow]="dropdownOpen2 ? 'down' : 'right'"></i>
+                    </div>
+                    <ul [@slideDown]="dropdownOpen2 ? 'open' : 'closed'" class="dropdown-list">
+                        <li *ngFor="let option of dropdownOptions2" (click)="selectOption(option, 2)">
+                            {{ option }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+  <div class="messages" #messagesContainer>
+    <!-- Initial message -->
+    <div *ngIf="messages.length === 0" class="initial-message">
+      <div class="intro-image" >
+        <img src="assets/chatbot-intro-image-transparent.gif" alt="Chatbot Introduction Image">
+      </div>
+      <div *ngIf="showIntroText" class="intro-message">
+        <div class="intro-text">
+          <p>{{ introTextAnimated }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages from user and bot -->
+    <div *ngFor="let msg of messages" class="message-container" [ngClass]="{'bot-message': msg.sender === 'bot', 'user-message': msg.sender === 'user'}">
+      <div>
+        <img class="sender-icon" *ngIf="msg.sender === 'user'" [src]="msg.icon ? msg.icon : 'assets/user-icon.gif'" alt="User Icon">
+        <img class="bot-icon" *ngIf="msg.sender === 'bot'" [src]="msg.icon ? msg.icon : 'assets/bot-icon-transparent.gif'" alt="Bot Icon">
+      </div>
+      <div class="message">
+        {{ msg.text }}
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="loading" class="bot-loading-container">
+      <div class="idle-bot">
+        <img class="bot-icon" src="assets/bot-icon-idle-transparent.gif" alt="Bot Icon">
+      </div>
+      <div class="loading-indicator">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- User input -->
+  <div class="input">
+    <input [(ngModel)]="userMessage" (keydown.enter)="sendMessage()" [placeholder]="userMessagePlaceholder">
+    <button (click)="sendButtonState === 'stop' ? stopTyping() : sendMessage()" [disabled]="!introTextComplete || !(userMessage.trim() && !messageProcessing) && sendButtonState !== 'stop'" class="send-button" [@sendButtonAnimation]="sendButtonState">
+      <img *ngIf="sendButtonState === 'idle'" src="assets/send.png" alt="Send" class="send-icon">
+      <img *ngIf="sendButtonState === 'stop'" src="assets/stop.png" alt="Stop" class="stop-icon">
+    </button>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+{
+  "name": "front-end",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^18.0.0",
+    "@angular/cdk": "^18.0.6",
+    "@angular/common": "^18.0.0",
+    "@angular/compiler": "^18.0.0",
+    "@angular/core": "^18.0.0",
+    "@angular/flex-layout": "^15.0.0-beta.42",
+    "@angular/forms": "^18.0.0",
+    "@angular/material": "^18.0.6",
+    "@angular/platform-browser": "^18.0.0",
+    "@angular/platform-browser-dynamic": "^18.0.0",
+    "@angular/router": "^18.0.0",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "cytoscape": "^3.30.1",
+    "d3": "^7.9.0",
+    "jquery": "^3.7.1",
+    "neo4j-driver": "^5.23.0",
+    "neovis.js": "^2.1.0",
+    "popper.js": "^1.16.1",
+    "primeicons": "^7.0.0",
+    "primeng": "^17.18.6",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "vis": "^4.21.0-EOL",
+    "vis-network": "^9.1.9",
+    "zone.js": "~0.14.3"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^18.0.7",
+    "@angular/cli": "^18.0.7",
+    "@angular/compiler-cli": "^18.0.0",
+    "@types/cytoscape": "^3.21.5",
+    "@types/d3": "^7.4.3",
+    "@types/jasmine": "~5.1.0",
+    "jasmine-core": "~5.1.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.4.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.9.5"
+  }
+}

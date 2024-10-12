@@ -1,0 +1,124 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.home-container {
+    top: 120px;
+    position: relative;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    left: 100px;
+}
+
+.title-container {
+    position: absolute;
+    top: 20px; /* Adjust as needed */
+    z-index: 10;
+}
+
+.welcome-text {
+    position: relative;
+    top: 3em; /* Adjust as needed */
+    color: #FFFFFF; /* Adjust text color as needed */
+    font-size: 1.5em; /* Smaller size for "Welcome to" */
+    margin: 0;
+    animation: fadeIn 2s ease-in-out;
+    left: 250px;
+    top: 200px;
+}
+
+.knoGen-text {
+    position: relative;
+    top: 3.2em; /* Adjust spacing as needed */
+    color: #FFFFFF; /* Adjust text color as needed */
+    font-size: 5em; /* Larger size for "KnoGen" */
+    margin: 0;
+    animation: fadeIn 2s ease-in-out 1s; /* Delayed fade-in for "KnoGen" */
+    left: 283px;
+    margin-top: -59px;
+}
+
+.title-container h1 {
+    font-size: 4em;
+    margin: 0;
+    color: #FFFFFF; /* Adjust text color as needed */
+    animation: slideDown 1.5s ease-in-out;
+}
+
+.graph-container {
+    position: relative;
+    width: 1000px;
+    height: 800px;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+}
+
+circle {
+    animation: pulse 2s infinite;
+}
+
+line {
+    animation: draw 2s ease-in-out;
+    stroke-width: 2;
+}
+
+/* Get Started Button */
+.get-started-btn {
+    position: absolute;
+    bottom: 70px; /* Adjust as needed for vertical position */
+    left: 32%;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    color: #FFFFFF;
+    background-color: #032463; /* Change to your desired color */
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.get-started-btn:hover {
+    background-color: #0056b3; /* Darker color for hover effect */
+    transform: scale(1.05); /* Slightly enlarge the button on hover */
+}
+
+.get-started-btn:focus {
+    outline: none; /* Remove outline on focus */
+}
+
+
+.get-started-btn:hover::after {
+    border-left-color: #0056b3; /* Arrow color on hover */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { r: 20; }
+    50% { r: 25; }
+    100% { r: 20; }
+}
+
+@keyframes draw {
+    from { stroke-dasharray: 0, 200; }
+    to { stroke-dasharray: 200, 0; }
+}

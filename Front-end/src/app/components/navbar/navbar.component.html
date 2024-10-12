@@ -1,0 +1,19 @@
+<nav class="navbar">
+    <div class="nav-links">
+        <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a routerLink="/file-upload" routerLinkActive="active">
+            <i class="fas fa-upload"></i> File Ingestion
+        </a>
+        <a routerLink="/graph" routerLinkActive="active">
+            <img src="assets/kg.png" alt="Graph Icon" class="nav-icon"> Visualization
+        </a>
+        <a routerLink="/chatbot" routerLinkActive="active">
+            <i class="fas fa-robot"></i> QnA
+        </a>
+        <a routerLink="/about" routerLinkActive="active">
+            <i class="fas fa-info-circle"></i> About
+        </a>
+    </div>
+</nav>
