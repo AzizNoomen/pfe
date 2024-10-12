@@ -10,7 +10,7 @@ router = APIRouter(prefix="/ingestion_service")
 
 @router.post("/documents", response_model=MessageResponse)
 @inject
-async def upload_documents(
+def upload_documents(
     files: List[UploadFile] = File(...),
     chunking_method:str = Query("regular"),
     model_name:str = Query("zephyr:latest"),
@@ -18,7 +18,7 @@ async def upload_documents(
         Provide[DependencyContainer.ingestion_service])):
     
     try:
-        await ingestion_service.ingest(files, chunking_method, model_name)
+        ingestion_service.ingest(files, chunking_method, model_name)
         return MessageResponse(message="Documents uploaded and graph created successfully")
     
     except Exception as e:

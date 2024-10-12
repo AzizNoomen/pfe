@@ -175,14 +175,14 @@ class IngestionService:
         await self.ingestion_repository.merge_nodes(similarity_threshold)
 
 
-    async def ingest(self, files: List[UploadFile] = File(...), chunking_method:str = "regular", model_name:str = "zephyr:latest") -> None:
+    def ingest(self, files: List[UploadFile] = File(...), chunking_method:str = "regular", model_name:str = "zephyr:latest") -> None:
         documents = self.load_documents(files)
         df = self.chunking(documents,chunking_method)
-        dfg1 = await self.generate_graph(df, model_name)
-        dfg2 = self.contextual_proximity(dfg1)
-        dfg = self.merge_relationships(dfg1, dfg2)
-        await self.contruct_graph(dfg)
-        await self.merge_nodes()
+        # dfg1 = await self.generate_graph(df, model_name)
+        # dfg2 = self.contextual_proximity(dfg1)
+        # dfg = self.merge_relationships(dfg1, dfg2)
+        # await self.contruct_graph(dfg)
+        # await self.merge_nodes()
         return {"message": "Documents uploaded and graph created successfully"}
 
 

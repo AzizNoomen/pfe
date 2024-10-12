@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from app.repositories.retrieval_repository import RetrievalRepository
 from app.helpers.df_helpers import query2Dataframe, query2Graph, graph2Df
-from sentence_transformers import CrossEncoder
+#from sentence_transformers import CrossEncoder
 from configuration.logging import logger
 import httpx
 
