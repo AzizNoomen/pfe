@@ -1,0 +1,14 @@
+fastapi==0.109.2
+uvicorn==0.27.1
+neo4j==5.18.0
+pydantic==2.5.3
+pydantic-settings==2.2.1
+requests==2.32.3
+langchain==0.2.2
+langchain-community==0.2.3
+pandas==2.2.2
+yachalk==0.0.1
+loguru==0.7.0
+dependency-injector==4.41.0
+httpx==0.25.2
+python-multipart==0.0.9
